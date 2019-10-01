@@ -160,7 +160,10 @@ class Codec {
   bool InitializeControlInterface();
   bool InitializeAudioInterface(uint32_t, CodecProtocol, CodecFormat);
 
-  bool WriteControlRegister(uint8_t address, uint16_t data);
+  bool WriteControlRegister16(uint8_t address, uint16_t data);
+  bool WriteControlRegister(uint8_t byte_1, uint8_t byte_2);
+  bool WriteControlRegister(uint8_t byte_1, uint8_t byte_2, uint8_t byte_3);
+  uint8_t ReadControlRegister(uint8_t mapbyte);
   bool InitializeCodec(uint32_t, CodecProtocol, CodecFormat);
 
   bool InitializeDMA();

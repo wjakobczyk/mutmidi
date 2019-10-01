@@ -1,0 +1,13 @@
+make -f elements/makefile
+
+
+Resources:
+http://vedder.se/2012/12/debugging-the-stm32f4-using-openocd-gdb-and-eclipse/
+http://vedder.se/2012/07/get-started-with-stm32f4-on-ubuntu-linux/
+https://github.com/4ilo/HD44780-Stm32HAL
+http://www.embeddeddev.pl/obsluga-lcd-hd44780-wprowadzenie/
+https://msalamon.pl/wyswietlacz-lcd-16x2-na-stm32-hal-cz-1/
+http://www.mind-dump.net/configuring-the-stm32f4-discovery-for-audio
+https://www.st.com/content/ccc/resource/technical/document/user_manual/70/fe/4a/3f/e7/e1/4f/7d/DM00039084.pdf/files/DM00039084.pdf/jcr:content/translations/en.DM00039084.pdf
+https://www.st.com/content/ccc/resource/technical/document/reference_manual/3d/6d/5a/66/b4/99/40/d4/DM00031020.pdf/files/DM00031020.pdf/jcr:content/translations/en.DM00031020.pdf
+

@@ -22,6 +22,8 @@
 // 
 // See http://creativecommons.org/licenses/MIT/ for more information.
 
+#include <inttypes.h>
+
 #include "elements/drivers/cv_adc.h"
 #include "elements/drivers/codec.h"
 #include "elements/drivers/debug_pin.h"
@@ -31,6 +33,13 @@
 #include "elements/dsp/part.h"
 #include "elements/cv_scaler.h"
 #include "elements/ui.h"
+
+#include "stmlib/stmlib.h"
+#include "stmlib/dsp/dsp.h"
+
+#include "stm32f4xx.h"
+#include "stm32f4xx_gpio.h"
+#include "stm32f4xx_rcc.h"
 
 // #define PROFILE_INTERRUPT 1
 
@@ -114,21 +123,24 @@ void Init() {
   System sys;
   
   sys.Init(true);
-
+/*
   // Init and seed the random parameters and generators with the serial number.
   part.Init(reverb_buffer);
   part.Seed((uint32_t*)(0x1fff7a10), 3);
 
   cv_scaler.Init();
   ui.Init(&part, &cv_scaler);
-  
+  */
   if (!codec.Init(32000, CODEC_PROTOCOL_PHILIPS, CODEC_FORMAT_16_BIT)) {
-    ui.Panic();
+    //ui.Panic();
+    while(1);
   }
+
   if (!codec.Start(&FillBuffer)) {
-    ui.Panic();
+    //ui.Panic();
+    while(1);
   }
-  
+  /*
   if (cv_scaler.freshly_baked()) {
 #ifdef PROFILE_INTERRUPT
     DebugPin::Init();
@@ -137,11 +149,40 @@ void Init() {
 #endif  // PROFILE_INTERRUPT
   }
   sys.StartTimers();
+  */
+}
+
+void delay(int time)
+{
+  volatile int i;
+  for (i = 0; i < time * 4000; i++) {}
 }
 
 int main(void) {
-  Init();
+
+    Init();
+    
+  GPIO_InitTypeDef gpio;
+
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE); // >TODO check
+
+  GPIO_StructInit(&gpio);
+  gpio.GPIO_Pin = GPIO_Pin_15;
+  gpio.GPIO_Mode = GPIO_Mode_OUT;
+  gpio.GPIO_OType = GPIO_OType_PP;
+  gpio.GPIO_Speed = GPIO_Speed_2MHz;
+  gpio.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(GPIOD, &gpio);
+
   while (1) {
-    ui.DoEvents();
+      GPIO_SetBits(GPIOD, GPIO_Pin_15); // zapalenie diody
+      delay(100);
+      GPIO_ResetBits(GPIOD, GPIO_Pin_15); // zgaszenie diody
+      delay(400);
   }
+
+  while (1) {
+    //ui.DoEvents();
+  }
+  return 0;
 }

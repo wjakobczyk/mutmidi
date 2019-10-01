@@ -30,6 +30,10 @@
 
 #include <string.h>
 
+#define DAC_CS43L22			//http://www.mind-dump.net/configuring-the-stm32f4-discovery-for-audio
+//#define DAC_WM8731
+
+#ifdef DAC_WM8731
 #define CODEC_I2C                      I2C2
 #define CODEC_I2C_CLK                  RCC_APB1Periph_I2C2
 #define CODEC_I2C_GPIO_CLOCK           RCC_AHB1Periph_GPIOB
@@ -64,6 +68,7 @@
 #define CODEC_I2S_MCK_PINSRC           GPIO_PinSource6
 #define CODEC_I2S_GPIO                 GPIOB
 #define CODEC_I2S_MCK_GPIO             GPIOC
+#define CODEC_I2S_WS_GPIO              GPIOB
 #define AUDIO_I2S_IRQHandler           SPI2_IRQHandler
 
 #define AUDIO_DMA_PERIPH_DATA_SIZE     DMA_PeripheralDataSize_HalfWord
@@ -95,6 +100,98 @@
 #define W8731_ADDR_1 0x1B
 #define W8731_NUM_REGS 10
 #define CODEC_ADDRESS           (W8731_ADDR_0 << 1)
+#endif
+
+#ifdef DAC_CS43L22
+#define CODEC_I2C                      I2C1
+#define CODEC_I2C_CLK                  RCC_APB1Periph_I2C1
+#define CODEC_I2C_GPIO_CLOCK           RCC_AHB1Periph_GPIOB
+#define CODEC_I2C_GPIO                 GPIOB
+#define CODEC_I2C_SCL_PIN              GPIO_Pin_6
+#define CODEC_I2C_SDA_PIN              GPIO_Pin_9
+#define CODEC_I2C_SCL_PINSRC           GPIO_PinSource6
+#define CODEC_I2C_SDA_PINSRC           GPIO_PinSource9
+#define CODEC_I2C_GPIO_AF              GPIO_AF_I2C1
+#define CODEC_TIMEOUT                  ((uint32_t)0x1000)
+#define CODEC_LONG_TIMEOUT             ((uint32_t)(300 * CODEC_TIMEOUT))
+#define CODEC_I2C_SPEED                100000
+
+#define CODEC_RESET_GPIO			   GPIOD
+#define CODEC_RESET_PIN				   GPIO_Pin_4
+
+#define CODEC_I2S                      SPI3
+#define CODEC_I2S_CLK                  RCC_APB1Periph_SPI3
+#define CODEC_I2S_GPIO_CLOCK           (RCC_AHB1Periph_GPIOC | RCC_AHB1Periph_GPIOD | RCC_AHB1Periph_GPIOA)
+#define CODEC_I2S_GPIO                 GPIOC
+#define CODEC_I2S_MCK_GPIO             GPIOC
+#define CODEC_I2S_WS_GPIO              GPIOA
+#define CODEC_I2S_WS_PIN               GPIO_Pin_4
+#define CODEC_I2S_SCK_PIN              GPIO_Pin_10
+#define CODEC_I2S_SDI_PIN              GPIO_Pin_12
+#define CODEC_I2S_SDO_PIN              GPIO_Pin_12
+#define CODEC_I2S_MCK_PIN              GPIO_Pin_7
+#define CODEC_I2S_WS_PINSRC            GPIO_PinSource4
+#define CODEC_I2S_SCK_PINSRC           GPIO_PinSource10
+#define CODEC_I2S_SDI_PINSRC           GPIO_PinSource12
+#define CODEC_I2S_SDO_PINSRC           GPIO_PinSource12
+#define CODEC_I2S_MCK_PINSRC           GPIO_PinSource7
+#define CODEC_I2S_GPIO_AF              GPIO_AF_SPI3
+#define CODEC_I2S_ADDRESS              0x40003C0C
+
+#define CODEC_ADDRESS           	   0x94
+
+#define AUDIO_I2S_DMA_DREG             CODEC_I2S_ADDRESS
+#define AUDIO_I2S_DMA_CHANNEL          DMA_Channel_0
+#define AUDIO_I2S_DMA_STREAM           DMA1_Stream5
+#define AUDIO_I2S_DMA_CLOCK            RCC_AHB1Periph_DMA1
+#define AUDIO_I2S_DMA_REG          		 DMA1
+#define AUDIO_I2S_DMA_FLAG_TC      		 DMA_FLAG_TCIF5
+#define AUDIO_I2S_DMA_FLAG_HT      		 DMA_FLAG_HTIF5
+#define AUDIO_I2S_DMA_ISR          		 HISR
+#define AUDIO_I2S_DMA_IFCR         		 HIFCR
+#define AUDIO_I2S_DMA_IRQ               DMA1_Stream5_IRQn
+
+#define CODEC_MAPBYTE_INC 0x80
+
+//register map bytes for CS42L22 (see page 35)
+#define CODEC_MAP_CHIP_ID 0x01
+#define CODEC_MAP_PWR_CTRL1 0x02
+#define CODEC_MAP_PWR_CTRL2 0x04
+#define CODEC_MAP_CLK_CTRL  0x05
+#define CODEC_MAP_IF_CTRL1  0x06
+#define CODEC_MAP_IF_CTRL2  0x07
+#define CODEC_MAP_PASSTHROUGH_A_SELECT 0x08
+#define CODEC_MAP_PASSTHROUGH_B_SELECT 0x09
+#define CODEC_MAP_ANALOG_SET 0x0A
+#define CODEC_MAP_PASSTHROUGH_GANG_CTRL 0x0C
+#define CODEC_MAP_PLAYBACK_CTRL1 0x0D
+#define CODEC_MAP_MISC_CTRL 0x0E
+#define CODEC_MAP_PLAYBACK_CTRL2 0x0F
+#define CODEC_MAP_PASSTHROUGH_A_VOL 0x14
+#define CODEC_MAP_PASSTHROUGH_B_VOL 0x15
+#define CODEC_MAP_PCMA_VOL 0x1A
+#define CODEC_MAP_PCMB_VOL 0x1B
+#define CODEC_MAP_BEEP_FREQ_ONTIME 0x1C
+#define CODEC_MAP_BEEP_VOL_OFFTIME 0x1D
+#define CODEC_MAP_BEEP_TONE_CFG 0x1E
+#define CODEC_MAP_TONE_CTRL 0x1F
+#define CODEC_MAP_MASTER_A_VOL 0x20
+#define CODEC_MAP_MASTER_B_VOL 0x21
+#define CODEC_MAP_HP_A_VOL 0x22
+#define CODEC_MAP_HP_B_VOL 0x23
+#define CODEC_MAP_SPEAK_A_VOL 0x24
+#define CODEC_MAP_SPEAK_B_VOL 0x25
+#define CODEC_MAP_CH_MIX_SWAP 0x26
+#define CODEC_MAP_LIMIT_CTRL1 0x27
+#define CODEC_MAP_LIMIT_CTRL2 0x28
+#define CODEC_MAP_LIMIT_ATTACK 0x29
+#define CODEC_MAP_OVFL_CLK_STATUS 0x2E
+#define CODEC_MAP_BATT_COMP 0x2F
+#define CODEC_MAP_VP_BATT_LEVEL 0x30
+#define CODEC_MAP_SPEAK_STATUS 0x31
+#define CODEC_MAP_CHARGE_PUMP_FREQ 0x34
+
+#endif
 
 #define WAIT_LONG(x) { \
   uint32_t timeout = CODEC_LONG_TIMEOUT; \
@@ -112,6 +209,7 @@ namespace elements {
 Codec* Codec::instance_;
 
 enum CodecRegister {
+#ifdef DAC_WM8731
   CODEC_REG_LEFT_LINE_IN = 0x00,
   CODEC_REG_RIGHT_LINE_IN = 0x01,
   CODEC_REG_LEFT_HEADPHONES_OUT = 0x02,
@@ -123,6 +221,7 @@ enum CodecRegister {
   CODEC_REG_SAMPLE_RATE = 0x08,
   CODEC_REG_ACTIVE = 0x09,
   CODEC_REG_RESET = 0x0f,
+#endif
 };
 
 bool Codec::InitializeGPIO() {
@@ -130,6 +229,16 @@ bool Codec::InitializeGPIO() {
 
   // Start GPIO peripheral clocks.
   RCC_AHB1PeriphClockCmd(CODEC_I2C_GPIO_CLOCK | CODEC_I2S_GPIO_CLOCK, ENABLE);
+
+#ifdef CODEC_RESET_PIN
+  gpio_init.GPIO_Pin = CODEC_RESET_PIN;
+  gpio_init.GPIO_Mode = GPIO_Mode_OUT;
+  gpio_init.GPIO_OType = GPIO_OType_PP;
+  gpio_init.GPIO_PuPd = GPIO_PuPd_DOWN;
+  gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
+
+  GPIO_Init(CODEC_RESET_GPIO, &gpio_init);
+#endif
 
   // Initialize I2C pins
   gpio_init.GPIO_Pin = CODEC_I2C_SCL_PIN | CODEC_I2C_SDA_PIN; 
@@ -145,7 +254,7 @@ bool Codec::InitializeGPIO() {
   
   // Initialize I2S pins
   gpio_init.GPIO_Pin = CODEC_I2S_SCK_PIN | CODEC_I2S_SDO_PIN | \
-      CODEC_I2S_SDI_PIN | CODEC_I2S_WS_PIN; 
+      CODEC_I2S_SDI_PIN;
   gpio_init.GPIO_Mode = GPIO_Mode_AF;
   gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
   gpio_init.GPIO_OType = GPIO_OType_PP;
@@ -154,9 +263,12 @@ bool Codec::InitializeGPIO() {
   
   gpio_init.GPIO_Pin = CODEC_I2S_MCK_PIN; 
   GPIO_Init(CODEC_I2S_MCK_GPIO, &gpio_init);
-  
+
+  gpio_init.GPIO_Pin = CODEC_I2S_WS_PIN;
+  GPIO_Init(CODEC_I2S_WS_GPIO, &gpio_init);
+
   // Connect pins to I2S peripheral.
-  GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_WS_PINSRC, CODEC_I2S_GPIO_AF);  
+  GPIO_PinAFConfig(CODEC_I2S_WS_GPIO, CODEC_I2S_WS_PINSRC, CODEC_I2S_GPIO_AF);
   GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_SCK_PINSRC, CODEC_I2S_GPIO_AF);
   GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_SDO_PINSRC, CODEC_I2S_GPIO_AF);
   GPIO_PinAFConfig(CODEC_I2S_GPIO, CODEC_I2S_SDI_PINSRC, CODEC_I2S_GPIO_AF);
@@ -180,7 +292,7 @@ bool Codec::InitializeControlInterface() {
   
   I2C_Init(CODEC_I2C, &i2c_init);
   I2C_Cmd(CODEC_I2C, ENABLE);  
-  
+
   return true;
 }
 
@@ -229,16 +341,19 @@ bool Codec::InitializeAudioInterface(
   // Initialize the I2S main channel for TX
   I2S_Init(CODEC_I2S, &i2s_init);
   
+#ifdef CODEC_I2S_EXT
   // Initialize the I2S extended channel for RX
   I2S_FullDuplexConfig(CODEC_I2S_EXT, &i2s_init);
-  
+#endif
+
   return true;
 }
 
-bool Codec::WriteControlRegister(uint8_t address, uint16_t data) {
-  uint8_t byte_1 = ((address << 1) & 0xfe) | ((data >> 8) & 0x01);
-  uint8_t byte_2 = data & 0xff;
-  
+bool Codec::WriteControlRegister16(uint8_t address, uint16_t data) {
+	return WriteControlRegister((uint8_t)((address << 1) & 0xfe) | ((data >> 8) & 0x01), (uint8_t)(data & 0xff));
+}
+
+bool Codec::WriteControlRegister(uint8_t byte_1, uint8_t byte_2) {
   WAIT_LONG(I2C_GetFlagStatus(CODEC_I2C, I2C_FLAG_BUSY));
   
   I2C_GenerateSTART(CODEC_I2C, ENABLE);
@@ -260,30 +375,95 @@ bool Codec::WriteControlRegister(uint8_t address, uint16_t data) {
   return true;  
 }
 
+bool Codec::WriteControlRegister(uint8_t byte_1, uint8_t byte_2, uint8_t byte_3) {
+
+  WAIT_LONG(I2C_GetFlagStatus(CODEC_I2C, I2C_FLAG_BUSY));
+
+  I2C_GenerateSTART(CODEC_I2C, ENABLE);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+
+  I2C_Send7bitAddress(CODEC_I2C, CODEC_ADDRESS, I2C_Direction_Transmitter);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+
+  I2C_SendData(CODEC_I2C, byte_1);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTING));
+
+  I2C_SendData(CODEC_I2C, byte_2);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTING));
+
+  I2C_SendData(CODEC_I2C, byte_3);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTING));
+
+  WAIT_LONG(!I2C_GetFlagStatus(CODEC_I2C, I2C_FLAG_BTF));
+
+  I2C_GenerateSTOP(CODEC_I2C, ENABLE);
+
+  return true;
+}
+
+uint8_t Codec::ReadControlRegister(uint8_t mapbyte) {
+	uint8_t receivedByte = 0;
+
+  WAIT_LONG(I2C_GetFlagStatus(CODEC_I2C, I2C_FLAG_BUSY));
+
+  I2C_GenerateSTART(CODEC_I2C, ENABLE);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+
+  I2C_Send7bitAddress(CODEC_I2C, CODEC_ADDRESS, I2C_Direction_Transmitter);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+
+  I2C_SendData(CODEC_I2C, mapbyte);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTING));
+
+	I2C_GenerateSTOP(CODEC_I2C, ENABLE);
+  WAIT_LONG(I2C_GetFlagStatus(CODEC_I2C, I2C_FLAG_BUSY));
+
+	I2C_AcknowledgeConfig(CODEC_I2C, DISABLE);
+
+	I2C_GenerateSTART(CODEC_I2C, ENABLE);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_MODE_SELECT));
+
+	I2C_Send7bitAddress(CODEC_I2C, CODEC_ADDRESS, I2C_Direction_Receiver);
+  WAIT(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED));
+
+  WAIT_LONG(!I2C_CheckEvent(CODEC_I2C, I2C_EVENT_MASTER_BYTE_RECEIVED));
+
+	receivedByte = I2C_ReceiveData(CODEC_I2C);
+
+	I2C_GenerateSTOP(CODEC_I2C, ENABLE);
+
+	return receivedByte;
+}
+
 bool Codec::InitializeCodec(
     uint32_t sample_rate,
     CodecProtocol protocol,
     CodecFormat format) {
   bool s = true;  // success;
-  s = s && WriteControlRegister(CODEC_REG_RESET, 0);
+#ifdef CODEC_RESET_PIN
+  GPIO_SetBits(CODEC_RESET_GPIO, CODEC_RESET_PIN);
+#endif
+
+#ifdef DAC_WM8731
+  s = s && WriteControlRegister16(CODEC_REG_RESET, 0);
   // Configure L&R inputs
-  s = s && WriteControlRegister(CODEC_REG_LEFT_LINE_IN, CODEC_INPUT_0_DB);
-  s = s && WriteControlRegister(CODEC_REG_RIGHT_LINE_IN, CODEC_INPUT_0_DB);
+  s = s && WriteControlRegister16(CODEC_REG_LEFT_LINE_IN, CODEC_INPUT_0_DB);
+  s = s && WriteControlRegister16(CODEC_REG_RIGHT_LINE_IN, CODEC_INPUT_0_DB);
   
   // Configure L&R headphone outputs
-  s = s && WriteControlRegister(CODEC_REG_LEFT_HEADPHONES_OUT, CODEC_HEADPHONES_MUTE);
-  s = s && WriteControlRegister(CODEC_REG_RIGHT_HEADPHONES_OUT, CODEC_HEADPHONES_MUTE);
+  s = s && WriteControlRegister16(CODEC_REG_LEFT_HEADPHONES_OUT, CODEC_HEADPHONES_MUTE);
+  s = s && WriteControlRegister16(CODEC_REG_RIGHT_HEADPHONES_OUT, CODEC_HEADPHONES_MUTE);
 
   // Configure analog routing
-  s = s && WriteControlRegister(
+  s = s && WriteControlRegister16(
       CODEC_REG_ANALOGUE_ROUTING,
       CODEC_MIC_MUTE | CODEC_ADC_LINE | CODEC_OUTPUT_DAC_ENABLE);
 
   // Configure digital routing
-  s = s && WriteControlRegister(CODEC_REG_DIGITAL_ROUTING, CODEC_DEEMPHASIS_NONE);
+  s = s && WriteControlRegister16(CODEC_REG_DIGITAL_ROUTING, CODEC_DEEMPHASIS_NONE);
 
   // Configure power management
-  s = s && WriteControlRegister(
+  s = s && WriteControlWriteControlRegister16Register(
       CODEC_REG_POWER_MANAGEMENT,
       CODEC_POWER_DOWN_OSCILLATOR | \
         CODEC_POWER_DOWN_CLOCK_OUTPUT | \
@@ -305,7 +485,7 @@ bool Codec::InitializeCodec(
   } else if (format == CODEC_FORMAT_32_BIT) {
     format_byte |= CODEC_FORMAT_MASK_32_BIT;
   }
-  s = s && WriteControlRegister(CODEC_REG_DIGITAL_FORMAT, format_byte);
+  s = s && WriteControlRegister16(CODEC_REG_DIGITAL_FORMAT, format_byte);
   
   uint8_t rate_byte = 0;
   // According to the WM8731 datasheet, the 32kHz and 96kHz modes require the
@@ -314,15 +494,54 @@ bool Codec::InitializeCodec(
   // pretending that we are doing 48kHz, but with a slower or faster master
   // clock.
   rate_byte = sample_rate == 44100 ? CODEC_RATE_44K_44K : CODEC_RATE_48K_48K;
-  s = s && WriteControlRegister(CODEC_REG_SAMPLE_RATE, rate_byte);
+  s = s && WriteControlRegister16(CODEC_REG_SAMPLE_RATE, rate_byte);
 
   // For now codec is not active.
-  s = s && WriteControlRegister(CODEC_REG_ACTIVE, 0x00);
+  s = s && WriteControlRegister16(CODEC_REG_ACTIVE, 0x00);
+#endif
+#ifdef DAC_CS43L22
+
+	uint32_t delaycount;
+	uint8_t regValue = 0xFF;
+
+	GPIO_SetBits(GPIOD, CODEC_RESET_PIN);
+	delaycount = 1000000;
+	while (delaycount > 0)
+	{
+		delaycount--;
+	}
+	//keep codec OFF
+	WriteControlRegister(CODEC_MAP_PLAYBACK_CTRL1, 0x01);
+
+	//begin initialization sequence (p. 32)
+	WriteControlRegister(0x00, 0x99);
+	WriteControlRegister(0x47, 0x80);
+	regValue = ReadControlRegister(0x32);
+	WriteControlRegister(0x32, regValue | 0x80);
+	regValue = ReadControlRegister(0x32);
+	WriteControlRegister(0x32, regValue & (~0x80));
+	WriteControlRegister(0x00, 0x00);
+	//end of initialization sequence
+
+	WriteControlRegister(CODEC_MAP_PWR_CTRL2, 0xAF);
+	WriteControlRegister(CODEC_MAP_PLAYBACK_CTRL1, 0x70);
+	WriteControlRegister(CODEC_MAP_CLK_CTRL, 0x81); //auto detect clock
+	WriteControlRegister(CODEC_MAP_IF_CTRL1, 0x07);
+	WriteControlRegister(0x0A, 0x00);
+	WriteControlRegister(0x27, 0x00);
+	WriteControlRegister(0x1A | CODEC_MAPBYTE_INC, 0x0A, 0x0A);
+	WriteControlRegister(0x1F, 0x0F);
+	WriteControlRegister(CODEC_MAP_PWR_CTRL1, 0x9E);
+
+#endif
   
   return s;
 }
 
 bool Codec::InitializeDMA() {
+  I2S_Cmd(CODEC_I2S, ENABLE);
+
+
   RCC_AHB1PeriphClockCmd(AUDIO_I2S_DMA_CLOCK, ENABLE);
 
   // DMA setup for TX.
@@ -346,6 +565,13 @@ bool Codec::InitializeDMA() {
   dma_init_tx_.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
   DMA_Init(AUDIO_I2S_DMA_STREAM, &dma_init_tx_);
 
+  // Enable the interrupts.
+  DMA_ITConfig(AUDIO_I2S_DMA_STREAM, DMA_IT_TC | DMA_IT_HT, ENABLE);
+    
+  // Enable the IRQ.
+  NVIC_EnableIRQ(AUDIO_I2S_DMA_IRQ);
+
+#ifdef AUDIO_I2S_EXT_DMA_STREAM
   // DMA setup for RX.
   DMA_Cmd(AUDIO_I2S_EXT_DMA_STREAM, DISABLE);
   DMA_DeInit(AUDIO_I2S_EXT_DMA_STREAM);
@@ -372,11 +598,13 @@ bool Codec::InitializeDMA() {
     
   // Enable the IRQ.
   NVIC_EnableIRQ(AUDIO_I2S_EXT_DMA_IRQ);
+#endif
 
   // Start DMA from/to codec.
   SPI_I2S_DMACmd(CODEC_I2S, SPI_I2S_DMAReq_Tx, ENABLE);
+#ifdef CODEC_I2S_EXT
   SPI_I2S_DMACmd(CODEC_I2S_EXT, SPI_I2S_DMAReq_Rx, ENABLE);
-  
+#endif
   return true;
 }
 
@@ -399,31 +627,36 @@ bool Codec::Init(
   callback_ = NULL;
 
   return InitializeGPIO() && \
-      InitializeControlInterface() && \
-      InitializeAudioInterface(sample_rate, protocol, format) && \
-      InitializeCodec(sample_rate, protocol, format) && \
-      InitializeDMA();
+    InitializeControlInterface() && \
+    InitializeAudioInterface(sample_rate, protocol, format) && \
+    InitializeCodec(sample_rate, protocol, format) && \
+    InitializeDMA();
 }
 
 bool Codec::Start(FillBufferCallback callback) {
   // Start the codec.
+#ifdef DAC_WM8731
   if (!WriteControlRegister(CODEC_REG_ACTIVE, 0x01)) {
     return false;
   }
+#endif
+
   callback_ = callback;
   client_tx_ = NULL;
   client_rx_ = NULL;
   transmitted_ = 0;
   processed_ = 0;
   
-  // Enable the I2S TX and RX peripherals.
-  if ((CODEC_I2S->I2SCFGR & 0x0400) == 0){
-    I2S_Cmd(CODEC_I2S, ENABLE);
-  }
-  if ((CODEC_I2S_EXT->I2SCFGR & 0x0400) == 0){
-    I2S_Cmd(CODEC_I2S_EXT, ENABLE);
-  }
-  
+//   // Enable the I2S TX and RX peripherals.
+//   if ((CODEC_I2S->I2SCFGR & 0x0400) == 0){
+//     I2S_Cmd(CODEC_I2S, ENABLE);
+//   }
+// #ifdef CODEC_I2S_EXT
+//   if ((CODEC_I2S_EXT->I2SCFGR & 0x0400) == 0){
+//     I2S_Cmd(CODEC_I2S_EXT, ENABLE);
+//   }
+// #endif
+
   dma_init_tx_.DMA_Memory0BaseAddr = (uint32_t)(tx_dma_buffer_);
   dma_init_rx_.DMA_Memory0BaseAddr = (uint32_t)(rx_dma_buffer_);
 
@@ -431,16 +664,22 @@ bool Codec::Start(FillBufferCallback callback) {
   dma_init_rx_.DMA_BufferSize = kAudioChunkSize * 2 * 2;
   
   DMA_Init(AUDIO_I2S_DMA_STREAM, &dma_init_tx_);
+#ifdef AUDIO_I2S_EXT_DMA_STREAM
   DMA_Init(AUDIO_I2S_EXT_DMA_STREAM, &dma_init_rx_);
+#endif
   DMA_Cmd(AUDIO_I2S_DMA_STREAM, ENABLE);
+#ifdef AUDIO_I2S_EXT_DMA_STREAM
   DMA_Cmd(AUDIO_I2S_EXT_DMA_STREAM, ENABLE);
+#endif
   
   return true;
 }
 
 void Codec::Stop() {
   DMA_Cmd(AUDIO_I2S_DMA_STREAM, DISABLE);
+#ifdef AUDIO_I2S_EXT_DMA_STREAM
   DMA_Cmd(AUDIO_I2S_EXT_DMA_STREAM, DISABLE);
+#endif
 }
 
 void Codec::Fill(size_t offset) {
@@ -469,6 +708,7 @@ extern "C" {
 // if (DMA_GetFlagStatus(AUDIO_I2S_EXT_DMA_STREAM, AUDIO_I2S_EXT_DMA_FLAG_TC) != RESET) {
 //  DMA_ClearFlag(AUDIO_I2S_EXT_DMA_STREAM, AUDIO_I2S_EXT_DMA_FLAG_TC);  
 
+#ifdef AUDIO_I2S_EXT_DMA_REG
 void DMA1_Stream3_IRQHandler(void) {
   if (AUDIO_I2S_EXT_DMA_REG->AUDIO_I2S_EXT_DMA_ISR & AUDIO_I2S_EXT_DMA_FLAG_TC) {
     AUDIO_I2S_EXT_DMA_REG->AUDIO_I2S_EXT_DMA_IFCR = AUDIO_I2S_EXT_DMA_FLAG_TC;
@@ -479,5 +719,18 @@ void DMA1_Stream3_IRQHandler(void) {
     elements::Codec::GetInstance()->Fill(0);
   }
 }
+#else
+void DMA1_Stream5_IRQHandler(void) {
+  if (AUDIO_I2S_DMA_REG->AUDIO_I2S_DMA_ISR & AUDIO_I2S_DMA_FLAG_TC) {
+    AUDIO_I2S_DMA_REG->AUDIO_I2S_DMA_IFCR = AUDIO_I2S_DMA_FLAG_TC;
+    elements::Codec::GetInstance()->Fill(elements::kAudioChunkSize);
+
+  }
+  if (AUDIO_I2S_DMA_REG->AUDIO_I2S_DMA_ISR & AUDIO_I2S_DMA_FLAG_HT) {
+    AUDIO_I2S_DMA_REG->AUDIO_I2S_DMA_IFCR = AUDIO_I2S_DMA_FLAG_HT;
+    elements::Codec::GetInstance()->Fill(0);
+  }
+}
+#endif
   
 }
