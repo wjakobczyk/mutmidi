@@ -54,3 +54,12 @@ wav:  $(TARGET_BIN)
 	python stm_audio_bootloader/qpsk/encoder.py \
 		-t stm32f4 -s 48000 -b 12000 -c 6000 -p 256 \
 		$(TARGET_BIN)
+
+# Rule to build static library
+TARGET_LIB     = $(BUILD_DIR)$(TARGET).a
+ARFLAGS = rcs
+
+$(TARGET_LIB): $(OBJS)
+	$(AR) $(ARFLAGS) $(TARGET_LIB) $(filter-out $(STARTUP_OBJ),$(OBJS))
+
+lib: $(TARGET_LIB)

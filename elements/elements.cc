@@ -33,6 +33,7 @@
 #include "elements/dsp/part.h"
 #include "elements/cv_scaler.h"
 #include "elements/ui.h"
+#include "elements/elements.h"
 
 #include "stmlib/stmlib.h"
 #include "stmlib/dsp/dsp.h"
@@ -182,10 +183,10 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
 #endif  // PROFILE_INTERRUPT
 }
 
-void Init() {
+void Init(bool application) {
   System sys;
   
-  sys.Init(true);
+  sys.Init(application);
 
   // Init and seed the random parameters and generators with the serial number.
   part.Init(reverb_buffer);
@@ -221,9 +222,9 @@ void delay(int time)
   for (i = 0; i < time * 4000; i++) {}
 }
 
-int main(void) {
+void RunElements(bool application) {
 
-    Init();
+    Init(application);
     
   GPIO_InitTypeDef gpio;
 
@@ -243,9 +244,15 @@ int main(void) {
       GPIO_ResetBits(GPIOD, GPIO_Pin_15); // zgaszenie diody
       delay(400);
   }
+}
 
-  while (1) {
-    //ui.DoEvents();
-  }
-  return 0;
+extern void DMA1_Stream5_IRQHandler(void);
+
+void Elements_DMA1_Stream5_IRQHandler(void) {
+  DMA1_Stream5_IRQHandler();
+}
+
+int main(void) {
+  RunElements(true);
+  return 1;
 }
