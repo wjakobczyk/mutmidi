@@ -75,12 +75,12 @@ Law CvScaler::law_[POT_LAST] = {
 Storage<1> storage;
 
 void CvScaler::Init() {
-  pots_.Init();
-  cv_.Init(false);
-  gate_input_.Init();
+  //pots_.Init();
+  //cv_.Init(false);
+  //gate_input_.Init();
   
   freshly_baked_ = false;
-  if (!storage.ParsimoniousLoad(&calibration_settings_, &version_token_)) {
+  if (false/*!storage.ParsimoniousLoad(&calibration_settings_, &version_token_)*/) {
     calibration_settings_.pitch_offset = 66.67f;
     calibration_settings_.pitch_scale = -84.26f;
     for (size_t i = 0; i < CV_ADC_CHANNEL_LAST; ++i) {
@@ -89,7 +89,7 @@ void CvScaler::Init() {
     calibration_settings_.boot_in_easter_egg_mode = false;
     calibration_settings_.resonator_model = 0;
     freshly_baked_ = true;
-    SaveCalibration();
+    //SaveCalibration();
   }
   
   CONSTRAIN(calibration_settings_.resonator_model, 0, 2);

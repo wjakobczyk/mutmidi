@@ -150,8 +150,11 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
   TIC
 #endif  // PROFILE_INTERRUPT
   PerformanceState s;
-  cv_scaler.Read(part.mutable_patch(), &s);
-  s.gate |= ui.gate();
+  //cv_scaler.Read(part.mutable_patch(), &s);
+  s.gate |= true;//ui.gate();
+  s.note = 50;
+  s.modulation = 0;
+  s.strength = 1;
   for (size_t i = 0; i < n; ++i) {
     float blow_in_sample = static_cast<float>(input[i].r) / 32768.0f;
     float strike_in_sample = static_cast<float>(input[i].l) / 32768.0f;
@@ -183,14 +186,14 @@ void Init() {
   System sys;
   
   sys.Init(true);
-/*
+
   // Init and seed the random parameters and generators with the serial number.
   part.Init(reverb_buffer);
-  part.Seed((uint32_t*)(0x1fff7a10), 3);
+  part.Seed((uint32_t*)(0x7a10), 3);
 
   cv_scaler.Init();
   ui.Init(&part, &cv_scaler);
-  */
+  
   if (!codec.Init(32000, CODEC_PROTOCOL_PHILIPS, CODEC_FORMAT_16_BIT)) {
     //ui.Panic();
     while(1);
@@ -208,8 +211,8 @@ void Init() {
     debug_port.Init();
 #endif  // PROFILE_INTERRUPT
   }
-  sys.StartTimers();
   */
+  sys.StartTimers();
 }
 
 void delay(int time)

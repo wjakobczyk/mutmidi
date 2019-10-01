@@ -41,8 +41,8 @@ using namespace std;
 using namespace stmlib;
 
 void Ui::Init(Part* part, CvScaler* cv_scaler) {
-  leds_.Init();
-  switch_.Init();
+  //leds_.Init();
+  //switch_.Init();
   mode_ = UI_MODE_NORMAL;  // UI_MODE_DISPLAY_MODEL;
   part_ = part;
   cv_scaler_ = cv_scaler;
