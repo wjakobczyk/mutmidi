@@ -57,10 +57,70 @@ uint16_t reverb_buffer[32768] __attribute__ ((section (".ccmdata")));
 // Default interrupt handlers.
 extern "C" {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+void prvGetRegistersFromStack( uint32_t *pulFaultStackAddress )
+{
+/* These are volatile to try and prevent the compiler/linker optimising them
+away as the variables never actually get used.  If the debugger won't show the
+values of the variables, make them global my moving their declaration outside
+of this function. */
+volatile uint32_t r0;
+volatile uint32_t r1;
+volatile uint32_t r2;
+volatile uint32_t r3;
+volatile uint32_t r12;
+volatile uint32_t lr; /* Link register. */
+volatile uint32_t pc; /* Program counter. */
+volatile uint32_t psr;/* Program status register. */
+volatile uint32_t bfar;
+volatile uint32_t cfsr;
+volatile uint32_t hfsr;
+volatile uint32_t dfsr;
+volatile uint32_t afsr;
+volatile uint32_t shcsr;
+
+    r0 = pulFaultStackAddress[ 0 ];
+    r1 = pulFaultStackAddress[ 1 ];
+    r2 = pulFaultStackAddress[ 2 ];
+    r3 = pulFaultStackAddress[ 3 ];
+
+    r12 = pulFaultStackAddress[ 4 ];
+    lr = pulFaultStackAddress[ 5 ];
+    pc = pulFaultStackAddress[ 6 ];
+    psr = pulFaultStackAddress[ 7 ];
+
+    bfar = *((unsigned int*)0xE000ED38);
+    cfsr = *((unsigned int*)0xE000ED28);
+    hfsr = *((unsigned int*)0xE000ED2C);
+    dfsr = *((unsigned int*)0xE000ED30);
+    afsr = *((unsigned int*)0xE000ED3C);
+    shcsr = SCB->SHCSR;
+
+    /* When the following line is hit, the variables contain the register values. */
+    for( ;; );
+}
+#pragma GCC diagnostic ignored "-Wunused-function"
+
+static void HardFault_Handler() __attribute__( ( naked ) );
 void NMI_Handler() { }
-void HardFault_Handler() { while (1); }
+void HardFault_Handler()
+{
+    __asm volatile
+    (
+        " tst lr, #4                                                \n"
+        " ite eq                                                    \n"
+        " mrseq r0, msp                                             \n"
+        " mrsne r0, psp                                             \n"
+        " ldr r1, [r0, #24]                                         \n"
+        " ldr r2, handler2_address_const                            \n"
+        " bx r2                                                     \n"
+        " handler2_address_const: .word prvGetRegistersFromStack    \n"
+    );
+}
+#pragma GCC diagnostic pop
 void MemManage_Handler() { while (1); }
-void BusFault_Handler() { while (1); }
+void BusFault_Handler() { HardFault_Handler(); }
 void UsageFault_Handler() { while (1); }
 void SVC_Handler() { }
 void DebugMon_Handler() { }
