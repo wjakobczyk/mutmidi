@@ -213,7 +213,7 @@ void Init(bool application) {
 #endif  // PROFILE_INTERRUPT
   }
   */
-  sys.StartTimers();
+  //sys.StartTimers();
 }
 
 void delay(int time)
@@ -224,7 +224,7 @@ void delay(int time)
 
 void RunElements(bool application) {
 
-    Init(application);
+  Init(application);
     
   GPIO_InitTypeDef gpio;
 
@@ -246,13 +246,18 @@ void RunElements(bool application) {
   }
 }
 
-extern void DMA1_Stream5_IRQHandler(void);
+extern "C" void DMA1_Stream5_IRQHandler(void);
 
 void Elements_DMA1_Stream5_IRQHandler(void) {
   DMA1_Stream5_IRQHandler();
 }
 
-int main(void) {
+__attribute__((weak)) int main(void) {
   RunElements(true);
   return 1;
+}
+
+extern "C" int __aeabi_atexit (void *arg, void (*func) (void *), void *d) {
+  //ignore, no shutdown for us
+  return 0;
 }

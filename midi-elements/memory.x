@@ -3,9 +3,25 @@ MEMORY
   /* NOTE 1 K = 1 KiBi = 1024 bytes */
   /* TODO Adjust these memory regions to match your device memory layout */
   /* These values correspond to the LM3S6965, one of the few devices QEMU can emulate */
-  FLASH : ORIGIN = 0x08000000, LENGTH = 64K
+  FLASH : ORIGIN = 0x08000000, LENGTH = 512K
   RAM : ORIGIN = 0x20000000, LENGTH = 128K
+  CCMRAM : ORIGIN = 0x10000000, LENGTH = 64K
 }
+
+SECTIONS {
+
+  .init_array (NOLOAD) :
+  {
+    *(.init_array)
+    . = ALIGN(16);
+  } >RAM
+
+  .ccmdata (NOLOAD) :
+  {
+    *(.ccmdata)
+    . = ALIGN(16);
+  } >CCMRAM
+} INSERT AFTER .bss;
 
 /* This is where the call stack will be allocated. */
 /* The stack is of the full descending type. */

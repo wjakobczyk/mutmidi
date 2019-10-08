@@ -10,7 +10,7 @@ fn main() {
         .unwrap()
         .write_all(include_bytes!("memory.x"))
         .unwrap();
-    println!("cargo:rustc-link-search={}", out.display());
+    println!("cargo:rustc-link-search=../build/elements");
 
     // Only re-run the build script when memory.x is changed,
     // instead of when any part of the source code changes.
