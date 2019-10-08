@@ -56,7 +56,7 @@ wav:  $(TARGET_BIN)
 		$(TARGET_BIN)
 
 # Rule to build static library
-TARGET_LIB     = $(BUILD_DIR)$(TARGET).a
+TARGET_LIB     = $(BUILD_DIR)lib$(TARGET).a
 ARFLAGS = rcs
 
 $(TARGET_LIB): $(OBJS)
