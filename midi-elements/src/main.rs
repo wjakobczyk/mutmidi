@@ -22,6 +22,28 @@ extern "C" {
     fn RunElements(application: bool);
     fn Elements_DMA1_Stream5_IRQHandler();
 }
+
+trait RotaryEncoder {
+    fn read(&self) -> u32;
+    fn setup(&self);
+}
+
+impl RotaryEncoder for stm32::TIM1 {
+    fn read(&self) -> u32 {
+        self.cnt.read().bits()
+    }
+
+    fn setup(&self) {
+        self.smcr.write(|w| unsafe { w.bits(3) });
+        self.ccer.write(|w| unsafe { w.bits(0) });
+        self.arr.write(|w| unsafe { w.bits(0xFFFF) });
+        self.ccmr1_input().write(|w| unsafe { w.bits(0xC1C1) });
+        self.cnt.write(|w| unsafe { w.bits(0) });
+        self.egr.write(|w| unsafe { w.bits(0) });
+        self.cr1.write(|w| unsafe { w.bits(1) });
+    }
+}
+
 #[entry]
 fn main() -> ! {
     if let (Some(p), Some(cp)) = (stm32::Peripherals::take(), Peripherals::take()) {
@@ -42,17 +64,10 @@ fn main() -> ! {
 
         gpioe.pe9.into_alternate_af1().internal_pull_up(true);
         gpioe.pe11.into_alternate_af1().internal_pull_up(true);
-
-        p.TIM1.smcr.write(|w| unsafe { w.bits(3) });
-        p.TIM1.ccer.write(|w| unsafe { w.bits(0) });
-        p.TIM1.arr.write(|w| unsafe { w.bits(0xFFFF) });
-        p.TIM1.ccmr1_input().write(|w| unsafe { w.bits(0xC1C1) });
-        p.TIM1.cnt.write(|w| unsafe { w.bits(0) });
-        p.TIM1.egr.write(|w| unsafe { w.bits(0) });
-        p.TIM1.cr1.write(|w| unsafe { w.bits(1) });
+        p.TIM1.setup();
 
         loop {
-            hprintln!("timer {}", p.TIM1.cnt.read().bits()).unwrap();
+            hprintln!("timer {}", p.TIM1.read()).unwrap();
             delay.delay_ms(100 as u32);
         }
     }
