@@ -11,53 +11,20 @@ use embedded_hal::blocking::delay::DelayMs;
 use hal::delay::Delay;
 use hal::gpio::*;
 use hal::stm32;
-use hal::gpio::gpioe::{PE9, PE11};
 use stm32f4::stm32f407::interrupt;
 use stm32f4xx_hal as hal;
 use stm32f4xx_hal::rcc::RccExt;
 
 extern crate cty;
 
+mod driver;
+use driver::encoder::RotaryEncoder;
+
 #[link(name = "elements")]
 extern "C" {
     fn RunElements(application: bool);
     fn Elements_DMA1_Stream5_IRQHandler();
 }
-
-trait RotaryEncoder {
-    type PIN1;
-    type PIN2;
-
-    fn read(&self) -> u32;
-    fn setup(&self, pin1: Self::PIN1, pin2: Self::PIN2);
-}
-
-macro_rules! rotary_encoder {
-    ($TIMX:ident, $PIN1X:ty, $PIN2X:ty) => {
-        impl RotaryEncoder for stm32::$TIMX {
-            type PIN1 = $PIN1X;
-            type PIN2 = $PIN2X;
-
-            fn read(&self) -> u32 {
-                self.cnt.read().bits()
-            }
-
-            fn setup(&self, pin1: $PIN1X, pin2: $PIN2X) {
-                self.smcr.write(|w| unsafe { w.bits(3) });
-                self.ccer.write(|w| unsafe { w.bits(0) });
-                self.arr.write(|w| unsafe { w.bits(0xFFFF) });
-                self.ccmr1_input().write(|w| unsafe { w.bits(0xC1C1) });
-                self.cnt.write(|w| unsafe { w.bits(0) });
-                self.egr.write(|w| unsafe { w.bits(0) });
-                self.cr1.write(|w| unsafe { w.bits(1) });
-                pin1.internal_pull_up(true);
-                pin2.internal_pull_up(true);
-            }
-        }
-    }
-}
-
-rotary_encoder!(TIM1, PE9<Alternate<AF1>>, PE11<Alternate<AF1>>);
 
 #[entry]
 fn main() -> ! {
@@ -77,10 +44,13 @@ fn main() -> ! {
 
         let gpioe = p.GPIOE.split();
 
-        p.TIM1.setup(gpioe.pe9.into_alternate_af1(), gpioe.pe11.into_alternate_af1());
+        p.TIM1.setup_enc(
+            gpioe.pe9.into_alternate_af1(),
+            gpioe.pe11.into_alternate_af1(),
+        );
 
         loop {
-            hprintln!("timer {}", p.TIM1.read()).unwrap();
+            hprintln!("timer {}", p.TIM1.read_enc()).unwrap();
             delay.delay_ms(100 as u32);
         }
     }
