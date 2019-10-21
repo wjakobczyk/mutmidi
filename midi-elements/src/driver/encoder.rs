@@ -11,6 +11,7 @@ pub trait RotaryEncoder {
     fn setup_enc(&self, pin1: Self::PIN1, pin2: Self::PIN2);
 }
 
+#[rustfmt::skip]
 macro_rules! define_rotary_encoder {
     ($TIMX:ident, $PIN1X:ty, $PIN2X:ty) => {
         impl RotaryEncoder for stm32::$TIMX {
@@ -22,13 +23,63 @@ macro_rules! define_rotary_encoder {
             }
 
             fn setup_enc(&self, pin1: $PIN1X, pin2: $PIN2X) {
-                self.smcr.write(|w| unsafe { w.bits(3) });
-                self.ccer.write(|w| unsafe { w.bits(0) });
-                self.arr.write(|w| unsafe { w.bits(0xFFFF) });
-                self.ccmr1_input().write(|w| unsafe { w.bits(0xC1C1) });
-                self.cnt.write(|w| unsafe { w.bits(0) });
-                self.egr.write(|w| unsafe { w.bits(0) });
-                self.cr1.write(|w| unsafe { w.bits(1) });
+                self.smcr.write(|w| w
+                    .sms().encoder_mode_3()
+                    .ts().itr0()
+                    .msm().no_sync()
+                    .etf().no_filter()
+                    .etps().div1()
+                    .ece().clear_bit()
+                    .etp().not_inverted()
+
+                );
+                self.ccer.write(|w| w
+                    .cc1e().clear_bit()
+                    .cc1p().clear_bit()
+                    .cc1ne().clear_bit()
+                    .cc1np().clear_bit()
+                    .cc2e().clear_bit()
+                    .cc2p().clear_bit()
+                    .cc2ne().clear_bit()
+                    .cc2np().clear_bit()
+                    .cc3e().clear_bit()
+                    .cc3p().clear_bit()
+                    .cc3ne().clear_bit()
+                    .cc3np().clear_bit()
+                    .cc4e().clear_bit()
+                    .cc4p().clear_bit()
+                );
+                self.arr.write(|w| w.arr().bits(0xFFFF));
+                self.ccmr1_input().write(|w| unsafe { w
+                    .cc1s().ti1()
+                    .ic1psc().bits(0)
+                    .ic1f().fdts_div16_n8()
+                    .cc2s().ti1()
+                    .ic2psc().bits(0)
+                    .ic2f().bits(0xc)
+                });
+                self.cnt.write(|w| w.cnt().bits(0));
+                self.egr.write(|w| w
+                    .ug().clear_bit()
+                    .cc1g().clear_bit()
+                    .cc2g().clear_bit()
+                    .cc3g().clear_bit()
+                    .cc4g().clear_bit()
+                    .comg().clear_bit()
+                    .tg().clear_bit()
+                    .bg().clear_bit()
+                );
+                self.cr1.write(|w| w
+                    .cen().enabled()
+                    .udis().clear_bit()
+                    .urs().any_event()
+                    .opm().disabled()
+                    .dir().up()
+                    .cms().edge_aligned()
+                    .arpe().disabled()
+                    .ckd().div1()
+                );
+
                 pin1.internal_pull_up(true);
                 pin2.internal_pull_up(true);
             }
