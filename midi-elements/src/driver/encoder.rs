@@ -1,6 +1,7 @@
 use hal::gpio::gpioe::{PE11, PE9};
 use hal::gpio::*;
 use hal::stm32;
+use stm32::RCC;
 use stm32f4xx_hal as hal;
 
 pub trait RotaryEncoder {
@@ -13,7 +14,7 @@ pub trait RotaryEncoder {
 
 #[rustfmt::skip]
 macro_rules! define_rotary_encoder {
-    ($TIMX:ident, $PIN1X:ty, $PIN2X:ty) => {
+    ($TIMX:ident, $PIN1X:ty, $PIN2X:ty, $PERIPH_EN_REG:ident, $PERIPH_EN_FIELD:ident) => {
         impl RotaryEncoder for stm32::$TIMX {
             type PIN1 = $PIN1X;
             type PIN2 = $PIN2X;
@@ -23,6 +24,9 @@ macro_rules! define_rotary_encoder {
             }
 
             fn setup_enc(&self, pin1: $PIN1X, pin2: $PIN2X) {
+                let rcc = unsafe { &(*RCC::ptr()) };
+                rcc.$PERIPH_EN_REG.write(|w| w.$PERIPH_EN_FIELD().set_bit());
+
                 self.smcr.write(|w| w
                     .sms().encoder_mode_3()
                     .ts().itr0()
@@ -87,4 +91,10 @@ macro_rules! define_rotary_encoder {
     };
 }
 
-define_rotary_encoder!(TIM1, PE9<Alternate<AF1>>, PE11<Alternate<AF1>>);
+define_rotary_encoder!(
+    TIM1,
+    PE9<Alternate<AF1>>,
+    PE11<Alternate<AF1>>,
+    apb2enr,
+    tim1en
+);
