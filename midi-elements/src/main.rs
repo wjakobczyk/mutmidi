@@ -20,11 +20,7 @@ extern crate cty;
 mod driver;
 use driver::encoder::RotaryEncoder;
 
-#[link(name = "elements")]
-extern "C" {
-    fn RunElements(application: bool);
-    fn Elements_DMA1_Stream5_IRQHandler();
-}
+include!("elements.rs");
 
 #[entry]
 fn main() -> ! {
@@ -54,7 +50,7 @@ fn main() -> ! {
     }
 
     unsafe {
-        RunElements(false);
+        Init(false);
     }
 
     loop {}
