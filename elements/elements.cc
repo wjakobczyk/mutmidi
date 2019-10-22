@@ -145,6 +145,7 @@ float aux[kAudioChunkSize];
 const float kNoiseGateThreshold = 0.0001f;
 float strike_in_level = 0.0f;
 float blow_in_level = 0.0f;
+bool gate = false;
 
 void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
 #ifdef PROFILE_INTERRUPT
@@ -152,7 +153,7 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
 #endif  // PROFILE_INTERRUPT
   PerformanceState s;
   //cv_scaler.Read(part.mutable_patch(), &s);
-  s.gate |= true;//ui.gate();
+  s.gate = gate;
   s.note = 50;
   s.modulation = 0;
   s.strength = 1;
@@ -181,6 +182,14 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
 #ifdef PROFILE_INTERRUPT
   TOC
 #endif  // PROFILE_INTERRUPT
+}
+
+Patch *GetPatch() {
+  return part.mutable_patch();
+}
+
+void SetGate(bool newGate) {
+  gate = newGate;
 }
 
 void Init(bool application) {
@@ -222,9 +231,11 @@ void delay(int time)
   for (i = 0; i < time * 4000; i++) {}
 }
 
-void RunElements(bool application) {
+void TestElements(bool application) {
 
   Init(application);
+
+  gate = true;
     
   GPIO_InitTypeDef gpio;
 
@@ -253,7 +264,7 @@ void Elements_DMA1_Stream5_IRQHandler(void) {
 }
 
 __attribute__((weak)) int main(void) {
-  RunElements(true);
+  TestElements(true);
   return 1;
 }
 
