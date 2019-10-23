@@ -6,7 +6,6 @@ TODO:
   * git squash
 * HW: podłączyć wyświetlacz i przetestować
 TODO PoC:
-* UI podpiąć driver ST7920 + testowa integracja z enkoderem
 * Elements: API v1
   v Note on/off
   v Jeden parametr

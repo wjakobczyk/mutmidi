@@ -1,4 +1,5 @@
-use hal::gpio::gpioe::{PE11, PE9};
+use hal::gpio::gpioa::PA8;
+use hal::gpio::gpioe::PE11;
 use hal::gpio::*;
 use hal::stm32;
 use stm32::RCC;
@@ -93,7 +94,7 @@ macro_rules! define_rotary_encoder {
 
 define_rotary_encoder!(
     TIM1,
-    PE9<Alternate<AF1>>,
+    PA8<Alternate<AF1>>,
     PE11<Alternate<AF1>>,
     apb2enr,
     tim1en
