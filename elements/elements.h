@@ -5,6 +5,6 @@
 extern "C" {
   void Init(bool application);
   elements::Patch *GetPatch();
-  void SetGate(int newGate);
+  void SetGate(bool newGate);
   void Elements_DMA1_Stream5_IRQHandler(void);
 }

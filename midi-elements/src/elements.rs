@@ -27,6 +27,6 @@ pub struct Patch {
 extern "C" {
     pub fn Init(application: bool);
     pub fn GetPatch() -> *mut Patch;
-    pub fn SetGate(newGate: cty::c_int);
+    pub fn SetGate(newGate: bool);
     pub fn Elements_DMA1_Stream5_IRQHandler();
 }

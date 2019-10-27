@@ -80,10 +80,19 @@ fn main() -> ! {
         disp.init(&mut delay).expect("could not init display");
         disp.clear(&mut delay).expect("could not clear display");
 
+        unsafe {
+            Init(false);
+        }
+
         loop {
             let button = !button_pin.is_high().unwrap();
             let value = p.TIM1.read_enc();
             let mut buffer = [0u8; 10];
+
+            unsafe {
+                SetGate(button);
+                (*GetPatch()).exciter_strike_level = (value as f32) / 20f32;
+            }
 
             disp.draw(
                 Font6x12::render_str(value.numtoa_str(10, &mut buffer))
@@ -99,10 +108,6 @@ fn main() -> ! {
             disp.flush_region(30, 30, 16, 16, &mut delay)
                 .expect("could not flush display");
         }
-    }
-
-    unsafe {
-        Init(false);
     }
 
     loop {}

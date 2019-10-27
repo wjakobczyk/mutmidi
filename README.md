@@ -19,7 +19,7 @@ TODO Prototyp:
 * Framework UI
 
 Etapy/milestones:
-* PoC: sterujemy jednym parametrem, wyzwalamy dźwięk przyciskiem
+v PoC: sterujemy jednym parametrem, wyzwalamy dźwięk przyciskiem
 * Prototyp: sterujemy wszystkimi parametrami dostępnymi na kilku stronach UI
 * Alpha: obsługa wejścia MIDI
 * Complete: zapisywanie patchy, konfiguracja
