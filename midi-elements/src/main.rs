@@ -1,17 +1,15 @@
 #![no_std]
 #![no_main]
 
-// pick a panicking behavior
-extern crate panic_halt; // you can put a breakpoint on `rust_begin_unwind` to catch panics
+extern crate panic_halt;
 
 use cortex_m::peripheral::Peripherals;
 use cortex_m_rt::entry;
-use cortex_m_semihosting::hprintln;
 use hal::delay::Delay;
 use hal::gpio::*;
 use hal::spi::*;
 use hal::stm32;
-use stm32f4::stm32f407::interrupt;
+use stm32f4::stm32f407::{interrupt, SPI2, TIM1};
 use stm32f4xx_hal as hal;
 use stm32f4xx_hal::rcc::RccExt;
 
@@ -32,14 +30,30 @@ use numtoa::NumToA;
 
 include!("elements.rs");
 
-#[entry]
-fn main() -> ! {
-    if let (Some(p), Some(cp)) = (stm32::Peripherals::take(), Peripherals::take()) {
-        hprintln!("Hello, world!").unwrap();
+struct App {
+    button_pin: gpiob::PB11<Input<PullUp>>,
+    display: st7920::ST7920<
+        Spi<
+            SPI2,
+            (
+                gpiob::PB13<Alternate<AF5>>,
+                NoMiso,
+                gpiob::PB15<Alternate<AF5>>,
+            ),
+        >,
+        gpioe::PE13<Output<PushPull>>,
+        gpioe::PE13<Output<PushPull>>,
+    >,
+    enc1: TIM1,
+    delay: Delay,
+}
 
+impl App {
+    fn new() -> Self {
+        let p = stm32::Peripherals::take().unwrap();
+        let cp = Peripherals::take().unwrap();
         let rcc = p.RCC.constrain();
 
-        // Configure clock to 168 MHz (i.e. the maximum) and freeze it
         let clocks = rcc
             .cfgr
             .sysclk(stm32f4xx_hal::time::MegaHertz(168))
@@ -70,47 +84,61 @@ fn main() -> ! {
         );
         let button_pin = gpiob.pb11.into_pull_up_input();
 
-        let mut disp = ST7920::new(
+        let mut display = ST7920::new(
             spi,
             lcd_reset,
             None as Option<stm32f4xx_hal::gpio::gpioe::PE13<Output<PushPull>>>,
             true,
         );
 
-        disp.init(&mut delay).expect("could not init display");
-        disp.clear(&mut delay).expect("could not clear display");
+        display.init(&mut delay).expect("could not init display");
+        display.clear(&mut delay).expect("could not clear display");
 
         unsafe {
             Init(false);
         }
 
-        loop {
-            let button = !button_pin.is_high().unwrap();
-            let value = p.TIM1.read_enc();
-            let mut buffer = [0u8; 10];
-
-            unsafe {
-                SetGate(button);
-                (*GetPatch()).exciter_strike_level = (value as f32) / 20f32;
-            }
-
-            disp.draw(
-                Font6x12::render_str(value.numtoa_str(10, &mut buffer))
-                    .fill(Some(if button {
-                        BinaryColor::On
-                    } else {
-                        BinaryColor::Off
-                    }))
-                    .stroke(Some(BinaryColor::On))
-                    .translate(Point::new(30, 30)),
-            );
-
-            disp.flush_region(30, 30, 16, 16, &mut delay)
-                .expect("could not flush display");
+        App {
+            button_pin,
+            display,
+            enc1: p.TIM1,
+            delay,
         }
     }
 
-    loop {}
+    fn update(&mut self) {
+        let button = !self.button_pin.is_high().unwrap();
+        let value = self.enc1.read_enc();
+        let mut buffer = [0u8; 10];
+
+        unsafe {
+            SetGate(button);
+            (*GetPatch()).exciter_strike_level = (value as f32) / 20f32;
+        }
+
+        self.display.draw(
+            Font6x12::render_str(value.numtoa_str(10, &mut buffer))
+                .fill(Some(if button {
+                    BinaryColor::On
+                } else {
+                    BinaryColor::Off
+                }))
+                .stroke(Some(BinaryColor::On))
+                .translate(Point::new(30, 30)),
+        );
+
+        self.display
+            .flush_region(30, 30, 16, 16, &mut self.delay)
+            .expect("could not flush display");
+    }
+}
+
+#[entry]
+fn main() -> ! {
+    let mut app = App::new();
+    loop {
+        app.update();
+    }
 }
 
 #[interrupt]
