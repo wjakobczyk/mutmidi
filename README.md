@@ -15,7 +15,7 @@ TODO PoC:
 * Przycisk do wyzwalania dźwięku
 
 TODO Prototyp:
-* UI Design
+v UI Design
 * Framework UI
 
 Etapy/milestones:

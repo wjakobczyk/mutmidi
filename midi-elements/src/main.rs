@@ -28,9 +28,13 @@ use embedded_hal::digital::v2::InputPin;
 
 use numtoa::NumToA;
 
+mod ui;
+use ui::button::Button;
+use ui::framework::Widget;
+
 include!("elements.rs");
 
-struct App {
+struct App<'a> {
     button_pin: gpiob::PB11<Input<PullUp>>,
     display: st7920::ST7920<
         Spi<
@@ -46,9 +50,10 @@ struct App {
     >,
     enc1: TIM1,
     delay: Delay,
+    button: Button<'a>,
 }
 
-impl App {
+impl<'a> App<'a> {
     fn new() -> Self {
         let p = stm32::Peripherals::take().unwrap();
         let cp = Peripherals::take().unwrap();
@@ -98,11 +103,14 @@ impl App {
             Init(false);
         }
 
+        let button = Button::new(Point::new(0, 0), "test");
+
         App {
             button_pin,
             display,
             enc1: p.TIM1,
             delay,
+            button,
         }
     }
 
@@ -126,9 +134,13 @@ impl App {
                 .stroke(Some(BinaryColor::On))
                 .translate(Point::new(30, 30)),
         );
-
         self.display
             .flush_region(30, 30, 16, 16, &mut self.delay)
+            .expect("could not flush display");
+
+        let invalidate = self.button.render(&mut self.display);
+        self.display
+            .flush_region_graphics(invalidate, &mut self.delay)
             .expect("could not flush display");
     }
 }
