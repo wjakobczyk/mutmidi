@@ -20,19 +20,20 @@ use driver::encoder::RotaryEncoder;
 
 use st7920::ST7920;
 
-use embedded_graphics::fonts::Font6x12;
-use embedded_graphics::pixelcolor::BinaryColor;
-use embedded_graphics::prelude::*;
-
 use embedded_hal::digital::v2::InputPin;
 
-use numtoa::NumToA;
-
 mod ui;
-use ui::button::Button;
-use ui::framework::Widget;
+use ui::{button::Button, framework::*, knob::Knob, panel::Panel};
+
+use heapless::consts::U8;
+use heapless::Vec;
 
 include!("elements.rs");
+
+enum InputDeviceId {
+    Button1,
+    Knob1,
+}
 
 struct App<'a> {
     button_pin: gpiob::PB11<Input<PullUp>>,
@@ -50,7 +51,7 @@ struct App<'a> {
     >,
     enc1: TIM1,
     delay: Delay,
-    button: Button<'a>,
+    panel: Panel<'a>,
 }
 
 impl<'a> App<'a> {
@@ -103,42 +104,55 @@ impl<'a> App<'a> {
             Init(false);
         }
 
-        let button = Button::new(Point::new(0, 0), "test");
+        let panel = App::setup_ui();
 
         App {
             button_pin,
             display,
             enc1: p.TIM1,
             delay,
-            button,
+            panel,
         }
+    }
+
+    fn setup_ui() -> Panel<'a> {
+        let mut buttons = Vec::<_, U8>::new();
+        let mut knobs = Vec::<_, U8>::new();
+
+        buttons
+            .push(Button::new(
+                Point::new(0, 0),
+                "test",
+                InputDeviceId::Button1 as InputId,
+            ))
+            .unwrap();
+        knobs
+            .push(Knob::new(
+                Point::new(0, 40),
+                InputDeviceId::Knob1 as InputId,
+            ))
+            .unwrap();
+
+        Panel::new(buttons, knobs)
     }
 
     fn update(&mut self) {
         let button = !self.button_pin.is_high().unwrap();
         let value = self.enc1.read_enc();
-        let mut buffer = [0u8; 10];
 
         unsafe {
             SetGate(button);
             (*GetPatch()).exciter_strike_level = (value as f32) / 20f32;
         }
 
-        self.display.draw(
-            Font6x12::render_str(value.numtoa_str(10, &mut buffer))
-                .fill(Some(if button {
-                    BinaryColor::On
-                } else {
-                    BinaryColor::Off
-                }))
-                .stroke(Some(BinaryColor::On))
-                .translate(Point::new(30, 30)),
+        self.panel.input_update(
+            InputDeviceId::Knob1 as InputId,
+            Value::Int((value / 20) as i8),
         );
-        self.display
-            .flush_region(30, 30, 16, 16, &mut self.delay)
-            .expect("could not flush display");
+        self.panel
+            .input_update(InputDeviceId::Button1 as InputId, Value::Bool(button));
 
-        let invalidate = self.button.render(&mut self.display);
+        let invalidate = self.panel.render(&mut self.display);
         self.display
             .flush_region_graphics(invalidate, &mut self.delay)
             .expect("could not flush display");

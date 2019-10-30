@@ -14,6 +14,7 @@ cty = "0.2.0"
 embedded-hal = { version = "0.2.3", features = ["unproven"] }
 embedded-graphics = { version = "0.6.0-alpha.2" }
 numtoa = "0.2.3"
+heapless = "0.5.1"
 
 # Uncomment for the panic example.
 # panic-itm = "0.4.1"
