@@ -14,6 +14,7 @@ pub type InputId = u32;
 
 pub trait Drawable {
     fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size);
+    fn is_dirty(&self) -> bool;
 }
 
 pub trait InputConsumer {

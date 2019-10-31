@@ -42,15 +42,23 @@ impl Drawable for Panel<'_> {
         };
 
         for component in self.buttons.iter_mut() {
-            let (pos, size) = component.render(drawing);
-            extend_rect_to_cover(&mut panel_pos, &mut panel_size, &pos, &size);
+            if component.is_dirty() {
+                let (pos, size) = component.render(drawing);
+                extend_rect_to_cover(&mut panel_pos, &mut panel_size, &pos, &size);
+            }
         }
         for component in self.knobs.iter_mut() {
-            let (pos, size) = component.render(drawing);
-            extend_rect_to_cover(&mut panel_pos, &mut panel_size, &pos, &size);
+            if component.is_dirty() {
+                let (pos, size) = component.render(drawing);
+                extend_rect_to_cover(&mut panel_pos, &mut panel_size, &pos, &size);
+            }
         }
 
         (panel_pos, panel_size)
+    }
+
+    fn is_dirty(&self) -> bool {
+        true
     }
 }
 

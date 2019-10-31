@@ -153,9 +153,11 @@ impl<'a> App<'a> {
             .input_update(InputDeviceId::Button1 as InputId, Value::Bool(button));
 
         let invalidate = self.panel.render(&mut self.display);
-        self.display
-            .flush_region_graphics(invalidate, &mut self.delay)
-            .expect("could not flush display");
+        if invalidate.1.width != 0 && invalidate.1.height != 0 {
+            self.display
+                .flush_region_graphics(invalidate, &mut self.delay)
+                .expect("could not flush display");
+        }
     }
 }
 

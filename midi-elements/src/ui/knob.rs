@@ -7,6 +7,7 @@ pub struct Knob {
     pub pos: Point,
     input_id: InputId,
     value: i8,
+    dirty: bool,
 }
 
 impl Knob {
@@ -15,6 +16,7 @@ impl Knob {
             pos,
             input_id,
             value: 0,
+            dirty: true,
         }
     }
 }
@@ -27,16 +29,22 @@ impl Drawable for Knob {
             .stroke(Some(BinaryColor::On))
             .translate(self.pos);
         drawing.draw(render);
+        self.dirty = false;
 
         (self.pos, render.size())
+    }
+
+    fn is_dirty(&self) -> bool {
+        self.dirty
     }
 }
 
 impl InputConsumer for Knob {
     fn input_update(&mut self, input_id: InputId, value: Value) {
-        if input_id == self.input_id {
-            if let Value::Int(value) = value {
+        if let Value::Int(value) = value {
+            if input_id == self.input_id && value != self.value {
                 self.value = value;
+                self.dirty = true;
             }
         }
     }
