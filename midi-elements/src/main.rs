@@ -1,7 +1,14 @@
+#![feature(alloc_error_handler)]
 #![no_std]
 #![no_main]
 
+extern crate alloc;
 extern crate panic_halt;
+
+use core::alloc::Layout;
+
+use alloc_cortex_m::CortexMHeap;
+use cortex_m::asm;
 
 use cortex_m::peripheral::Peripherals;
 use cortex_m_rt::entry;
@@ -9,7 +16,7 @@ use hal::delay::Delay;
 use hal::gpio::*;
 use hal::spi::*;
 use hal::stm32;
-use stm32f4::stm32f407::{interrupt, SPI2, TIM1};
+use stm32f4::stm32f407::{interrupt, SPI2, TIM1, TIM2, TIM3, TIM5};
 use stm32f4xx_hal as hal;
 use stm32f4xx_hal::rcc::RccExt;
 
@@ -25,14 +32,23 @@ use embedded_hal::digital::v2::InputPin;
 mod ui;
 use ui::{button::Button, framework::*, knob::Knob, panel::Panel};
 
+mod elements_handlers;
+use elements_handlers::*;
+
+use alloc::boxed::Box;
 use heapless::consts::U8;
 use heapless::Vec;
 
-include!("elements.rs");
+#[global_allocator]
+static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
+const HEAP_SIZE: usize = 1024; // in bytes
 
 enum InputDeviceId {
     Button1,
     Knob1,
+    Knob2,
+    Knob3,
+    Knob4,
 }
 
 struct App<'a> {
@@ -49,9 +65,9 @@ struct App<'a> {
         gpioe::PE13<Output<PushPull>>,
         gpioe::PE13<Output<PushPull>>,
     >,
-    enc1: TIM1,
+    encoders: (TIM1, TIM2, TIM3, TIM5),
     delay: Delay,
-    panel: Panel<'a>,
+    panel: Option<Panel<'a>>,
 }
 
 impl<'a> App<'a> {
@@ -73,6 +89,18 @@ impl<'a> App<'a> {
         p.TIM1.setup_enc(
             gpioa.pa8.into_alternate_af1(),
             gpioe.pe11.into_alternate_af1(),
+        );
+        p.TIM2.setup_enc(
+            gpioa.pa15.into_alternate_af1(),
+            gpiob.pb3.into_alternate_af1(),
+        );
+        p.TIM3.setup_enc(
+            gpiob.pb4.into_alternate_af1(),
+            gpiob.pb5.into_alternate_af1(),
+        );
+        p.TIM5.setup_enc(
+            gpioa.pa1.into_alternate_af1(),
+            gpioa.pa0.into_alternate_af1(),
         );
 
         let lcd_sck = gpiob.pb13.into_alternate_af5();
@@ -97,73 +125,129 @@ impl<'a> App<'a> {
             true,
         );
 
-        display.init(&mut delay).expect("could not init display");
+        display.init(&mut delay).expect("could not  display");
         display.clear(&mut delay).expect("could not clear display");
 
         unsafe {
             Init(false);
         }
 
-        let panel = App::setup_ui();
-
         App {
             button_pin,
             display,
-            enc1: p.TIM1,
+            encoders: (p.TIM1, p.TIM2, p.TIM3, p.TIM5),
             delay,
-            panel,
+            panel: None,
         }
     }
 
-    fn setup_ui() -> Panel<'a> {
-        let mut buttons = Vec::<_, U8>::new();
+    fn setup_knobs(&mut self) -> Vec<Knob, U8> {
         let mut knobs = Vec::<_, U8>::new();
+
+        knobs
+            .push(Knob::new(
+                Point::new(0, 40),
+                InputDeviceId::Knob1 as InputId,
+                create_knob_handler(Param::ExcStrikeLevel),
+            ))
+            .unwrap();
+        knobs
+            .push(Knob::new(
+                Point::new(64, 40),
+                InputDeviceId::Knob2 as InputId,
+                create_knob_handler(Param::ExcStrikeTimbre),
+            ))
+            .unwrap();
+        knobs
+            .push(Knob::new(
+                Point::new(192, 40),
+                InputDeviceId::Knob4 as InputId,
+                create_knob_handler(Param::ExcStrikeMeta),
+            ))
+            .unwrap();
+
+        knobs
+    }
+
+    fn setup_ui(&mut self) {
+        let mut buttons = Vec::<_, U8>::new();
+
+        let button_handler = Box::new(|value: bool| {
+            unsafe {
+                (*APP).trigger_note(value);
+            }
+            true
+        });
 
         buttons
             .push(Button::new(
                 Point::new(0, 0),
                 "test",
                 InputDeviceId::Button1 as InputId,
-            ))
-            .unwrap();
-        knobs
-            .push(Knob::new(
-                Point::new(0, 40),
-                InputDeviceId::Knob1 as InputId,
+                button_handler,
             ))
             .unwrap();
 
-        Panel::new(buttons, knobs)
+        self.panel = Some(Panel::new(buttons, self.setup_knobs()))
+    }
+
+    pub fn trigger_note(&mut self, trigger: bool) {
+        unsafe {
+            SetGate(trigger);
+        }
+    }
+
+    fn update_knobs(&mut self) {
+        if let Some(panel) = &mut self.panel {
+            panel.input_update(
+                InputDeviceId::Knob1 as InputId,
+                Value::Int(self.encoders.0.read_enc() as i32),
+            );
+            panel.input_update(
+                InputDeviceId::Knob2 as InputId,
+                Value::Int(self.encoders.1.read_enc() as i32),
+            );
+            panel.input_update(
+                InputDeviceId::Knob3 as InputId,
+                Value::Int(self.encoders.2.read_enc() as i32),
+            );
+            panel.input_update(
+                InputDeviceId::Knob4 as InputId,
+                Value::Int(self.encoders.3.read_enc() as i32),
+            );
+        };
     }
 
     fn update(&mut self) {
         let button = !self.button_pin.is_high().unwrap();
-        let value = self.enc1.read_enc();
 
-        unsafe {
-            SetGate(button);
-            (*GetPatch()).exciter_strike_level = (value as f32) / 20f32;
-        }
+        self.update_knobs();
 
-        self.panel.input_update(
-            InputDeviceId::Knob1 as InputId,
-            Value::Int((value / 20) as i8),
-        );
-        self.panel
-            .input_update(InputDeviceId::Button1 as InputId, Value::Bool(button));
+        if let Some(panel) = &mut self.panel {
+            panel.input_update(InputDeviceId::Button1 as InputId, Value::Bool(button));
 
-        let invalidate = self.panel.render(&mut self.display);
-        if invalidate.1.width != 0 && invalidate.1.height != 0 {
-            self.display
-                .flush_region_graphics(invalidate, &mut self.delay)
-                .expect("could not flush display");
+            let invalidate = panel.render(&mut self.display);
+            if invalidate.1.width != 0 && invalidate.1.height != 0 {
+                self.display
+                    .flush_region_graphics(invalidate, &mut self.delay)
+                    .expect("could not flush display");
+            }
         }
     }
 }
 
+static mut APP: *mut App = 0 as *mut App;
+
 #[entry]
 fn main() -> ! {
+    unsafe { ALLOCATOR.init(cortex_m_rt::heap_start() as usize, HEAP_SIZE) }
+
     let mut app = App::new();
+    unsafe {
+        APP = &mut app as *mut App;
+    }
+
+    app.setup_ui();
     loop {
         app.update();
     }
@@ -174,4 +258,11 @@ fn DMA1_STREAM5() {
     unsafe {
         Elements_DMA1_Stream5_IRQHandler();
     }
+}
+
+#[alloc_error_handler]
+fn alloc_error(_layout: Layout) -> ! {
+    asm::bkpt();
+
+    loop {}
 }

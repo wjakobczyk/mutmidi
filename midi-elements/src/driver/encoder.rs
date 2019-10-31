@@ -1,5 +1,6 @@
-use hal::gpio::gpioa::PA8;
-use hal::gpio::gpioe::PE11;
+use hal::gpio::gpioa::*;
+use hal::gpio::gpiob::*;
+use hal::gpio::gpioe::*;
 use hal::gpio::*;
 use hal::stm32;
 use stm32::RCC;
@@ -9,7 +10,7 @@ pub trait RotaryEncoder {
     type PIN1;
     type PIN2;
 
-    fn read_enc(&self) -> u32;
+    fn read_enc(&self) -> i16;
     fn setup_enc(&self, pin1: Self::PIN1, pin2: Self::PIN2);
 }
 
@@ -20,8 +21,8 @@ macro_rules! define_rotary_encoder {
             type PIN1 = $PIN1X;
             type PIN2 = $PIN2X;
 
-            fn read_enc(&self) -> u32 {
-                self.cnt.read().bits()
+            fn read_enc(&self) -> i16 {
+                (self.cnt.read().bits() as i16) / 2
             }
 
             fn setup_enc(&self, pin1: $PIN1X, pin2: $PIN2X) {
@@ -38,22 +39,7 @@ macro_rules! define_rotary_encoder {
                     .etp().not_inverted()
 
                 );
-                self.ccer.write(|w| w
-                    .cc1e().clear_bit()
-                    .cc1p().clear_bit()
-                    .cc1ne().clear_bit()
-                    .cc1np().clear_bit()
-                    .cc2e().clear_bit()
-                    .cc2p().clear_bit()
-                    .cc2ne().clear_bit()
-                    .cc2np().clear_bit()
-                    .cc3e().clear_bit()
-                    .cc3p().clear_bit()
-                    .cc3ne().clear_bit()
-                    .cc3np().clear_bit()
-                    .cc4e().clear_bit()
-                    .cc4p().clear_bit()
-                );
+                self.ccer.write(|w| unsafe { w.bits(0) });
                 self.arr.write(|w| w.arr().bits(0xFFFF));
                 self.ccmr1_input().write(|w| unsafe { w
                     .cc1s().ti1()
@@ -64,16 +50,7 @@ macro_rules! define_rotary_encoder {
                     .ic2f().bits(0xc)
                 });
                 self.cnt.write(|w| w.cnt().bits(0));
-                self.egr.write(|w| w
-                    .ug().clear_bit()
-                    .cc1g().clear_bit()
-                    .cc2g().clear_bit()
-                    .cc3g().clear_bit()
-                    .cc4g().clear_bit()
-                    .comg().clear_bit()
-                    .tg().clear_bit()
-                    .bg().clear_bit()
-                );
+                self.egr.write(|w| unsafe { w.bits(0) });
                 self.cr1.write(|w| w
                     .cen().enabled()
                     .udis().clear_bit()
@@ -98,4 +75,25 @@ define_rotary_encoder!(
     PE11<Alternate<AF1>>,
     apb2enr,
     tim1en
+);
+define_rotary_encoder!(
+    TIM2,
+    PA15<Alternate<AF1>>,
+    PB3<Alternate<AF1>>,
+    apb1enr,
+    tim2en
+);
+define_rotary_encoder!(
+    TIM3,
+    PB4<Alternate<AF1>>,
+    PB5<Alternate<AF1>>,
+    apb1enr,
+    tim3en
+);
+define_rotary_encoder!(
+    TIM5,
+    PA1<Alternate<AF1>>,
+    PA0<Alternate<AF1>>,
+    apb1enr,
+    tim5en
 );

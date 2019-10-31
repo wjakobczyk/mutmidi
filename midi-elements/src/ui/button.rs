@@ -1,23 +1,36 @@
 use super::framework::*;
+use alloc::boxed::Box;
 use embedded_graphics::{fonts::Font6x12, prelude::*};
 
-#[derive(Debug)]
 pub struct Button<'a> {
     pub pos: Point,
     caption: &'a str,
     input_id: InputId,
     pressed: bool,
     dirty: bool,
+    handler: Box<dyn FnMut(bool) -> bool>,
+}
+
+impl<'a> core::fmt::Debug for Button<'a> {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(f, "Button({})", self.input_id)
+    }
 }
 
 impl<'a> Button<'a> {
-    pub fn new(pos: Point, caption: &'a str, input_id: InputId) -> Self {
+    pub fn new(
+        pos: Point,
+        caption: &'a str,
+        input_id: InputId,
+        handler: Box<dyn FnMut(bool) -> bool>,
+    ) -> Self {
         Button {
             pos,
             caption,
             input_id,
             pressed: false,
             dirty: true,
+            handler,
         }
     }
 }
@@ -51,8 +64,10 @@ impl<'a> InputConsumer for Button<'a> {
     fn input_update(&mut self, input_id: InputId, value: Value) {
         if let Value::Bool(value) = value {
             if input_id == self.input_id && value != self.pressed {
-                self.pressed = value;
-                self.dirty = true;
+                if (self.handler)(value) {
+                    self.pressed = value;
+                    self.dirty = true;
+                }
             }
         }
     }

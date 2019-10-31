@@ -7,7 +7,7 @@ pub use embedded_graphics::{
 #[derive(Copy, Clone)]
 pub enum Value {
     Bool(bool),
-    Int(i8),
+    Int(i32),
 }
 
 pub type InputId = u32;
