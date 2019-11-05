@@ -45,6 +45,10 @@ const HEAP_SIZE: usize = 1024; // in bytes
 
 enum InputDeviceId {
     Button1,
+    Button2,
+    Button3,
+    Button4,
+    Button5,
     Knob1,
     Knob2,
     Knob3,
@@ -52,7 +56,13 @@ enum InputDeviceId {
 }
 
 struct App<'a> {
-    button_pin: gpiob::PB11<Input<PullUp>>,
+    button_pins: (
+        gpioe::PE7<Input<PullUp>>,
+        gpioe::PE15<Input<PullUp>>,
+        gpiod::PD9<Input<PullUp>>,
+        gpiod::PD11<Input<PullUp>>,
+        gpiob::PB11<Input<PullUp>>,
+    ),
     display: st7920::ST7920<
         Spi<
             SPI2,
@@ -84,6 +94,7 @@ impl<'a> App<'a> {
 
         let gpioa = p.GPIOA.split();
         let gpiob = p.GPIOB.split();
+        let gpiod = p.GPIOD.split();
         let gpioe = p.GPIOE.split();
 
         p.TIM1.setup_enc(
@@ -116,7 +127,13 @@ impl<'a> App<'a> {
             stm32f4xx_hal::time::KiloHertz(1200).into(),
             clocks,
         );
-        let button_pin = gpiob.pb11.into_pull_up_input();
+        let button_pins = (
+            gpioe.pe7.into_pull_up_input(),
+            gpioe.pe15.into_pull_up_input(),
+            gpiod.pd9.into_pull_up_input(),
+            gpiod.pd11.into_pull_up_input(),
+            gpiob.pb11.into_pull_up_input(),
+        );
 
         let mut display = ST7920::new(
             spi,
@@ -133,7 +150,7 @@ impl<'a> App<'a> {
         }
 
         App {
-            button_pin,
+            button_pins,
             display,
             encoders: (p.TIM1, p.TIM2, p.TIM3, p.TIM5),
             delay,
@@ -169,26 +186,60 @@ impl<'a> App<'a> {
         knobs
     }
 
-    fn setup_ui(&mut self) {
+    fn setup_buttons(&mut self) -> Vec<Button<'a>, U8> {
         let mut buttons = Vec::<_, U8>::new();
-
-        let button_handler = Box::new(|value: bool| {
-            unsafe {
-                (*APP).trigger_note(value);
-            }
-            true
-        });
 
         buttons
             .push(Button::new(
                 Point::new(0, 0),
-                "test",
+                "P1",
                 InputDeviceId::Button1 as InputId,
-                button_handler,
+                Box::new(|value: bool| {
+                    unsafe {
+                        (*APP).trigger_note(value);
+                    }
+                    true
+                }),
+            ))
+            .unwrap();
+        buttons
+            .push(Button::new(
+                Point::new(26, 0),
+                "P2",
+                InputDeviceId::Button2 as InputId,
+                Box::new(|_value: bool| true),
+            ))
+            .unwrap();
+        buttons
+            .push(Button::new(
+                Point::new(51, 0),
+                "P3",
+                InputDeviceId::Button3 as InputId,
+                Box::new(|_value: bool| true),
+            ))
+            .unwrap();
+        buttons
+            .push(Button::new(
+                Point::new(77, 0),
+                "P4",
+                InputDeviceId::Button4 as InputId,
+                Box::new(|_value: bool| true),
+            ))
+            .unwrap();
+        buttons
+            .push(Button::new(
+                Point::new(102, 0),
+                "P5",
+                InputDeviceId::Button5 as InputId,
+                Box::new(|_value: bool| true),
             ))
             .unwrap();
 
-        self.panel = Some(Panel::new(buttons, self.setup_knobs()))
+        buttons
+    }
+
+    fn setup_ui(&mut self) {
+        self.panel = Some(Panel::new(self.setup_buttons(), self.setup_knobs()))
     }
 
     pub fn trigger_note(&mut self, trigger: bool) {
@@ -218,14 +269,36 @@ impl<'a> App<'a> {
         };
     }
 
-    fn update(&mut self) {
-        let button = !self.button_pin.is_high().unwrap();
+    fn update_buttons(&mut self) {
+        if let Some(panel) = &mut self.panel {
+            panel.input_update(
+                InputDeviceId::Button1 as InputId,
+                Value::Bool(!self.button_pins.0.is_high().unwrap()),
+            );
+            panel.input_update(
+                InputDeviceId::Button2 as InputId,
+                Value::Bool(!self.button_pins.1.is_high().unwrap()),
+            );
+            panel.input_update(
+                InputDeviceId::Button3 as InputId,
+                Value::Bool(!self.button_pins.2.is_high().unwrap()),
+            );
+            panel.input_update(
+                InputDeviceId::Button4 as InputId,
+                Value::Bool(!self.button_pins.3.is_high().unwrap()),
+            );
+            panel.input_update(
+                InputDeviceId::Button5 as InputId,
+                Value::Bool(!self.button_pins.4.is_high().unwrap()),
+            );
+        }
+    }
 
+    fn update(&mut self) {
         self.update_knobs();
+        self.update_buttons();
 
         if let Some(panel) = &mut self.panel {
-            panel.input_update(InputDeviceId::Button1 as InputId, Value::Bool(button));
-
             let invalidate = panel.render(&mut self.display);
             if invalidate.1.width != 0 && invalidate.1.height != 0 {
                 self.display
