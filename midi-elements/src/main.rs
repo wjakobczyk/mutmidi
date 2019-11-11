@@ -75,7 +75,7 @@ struct App<'a> {
         gpioe::PE13<Output<PushPull>>,
         gpioe::PE13<Output<PushPull>>,
     >,
-    encoders: (TIM1, TIM2, TIM3, TIM5),
+    encoders: (TIM2, TIM3, TIM5, TIM1),
     delay: Delay,
     panel: Option<Panel<'a>>,
 }
@@ -106,12 +106,12 @@ impl<'a> App<'a> {
             gpiob.pb3.into_alternate_af1(),
         );
         p.TIM3.setup_enc(
-            gpiob.pb4.into_alternate_af1(),
-            gpiob.pb5.into_alternate_af1(),
+            gpiob.pb5.into_alternate_af2(),
+            gpiob.pb4.into_alternate_af2(),
         );
         p.TIM5.setup_enc(
-            gpioa.pa1.into_alternate_af1(),
-            gpioa.pa0.into_alternate_af1(),
+            gpioa.pa1.into_alternate_af2(),
+            gpioa.pa0.into_alternate_af2(),
         );
 
         let lcd_sck = gpiob.pb13.into_alternate_af5();
@@ -152,7 +152,7 @@ impl<'a> App<'a> {
         App {
             button_pins,
             display,
-            encoders: (p.TIM1, p.TIM2, p.TIM3, p.TIM5),
+            encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
             delay,
             panel: None,
         }
@@ -170,14 +170,14 @@ impl<'a> App<'a> {
             .unwrap();
         knobs
             .push(Knob::new(
-                Point::new(64, 40),
+                Point::new(32, 40),
                 InputDeviceId::Knob2 as InputId,
                 create_knob_handler(Param::ExcStrikeTimbre),
             ))
             .unwrap();
         knobs
             .push(Knob::new(
-                Point::new(192, 40),
+                Point::new(96, 40),
                 InputDeviceId::Knob4 as InputId,
                 create_knob_handler(Param::ExcStrikeMeta),
             ))

@@ -85,15 +85,15 @@ define_rotary_encoder!(
 );
 define_rotary_encoder!(
     TIM3,
-    PB4<Alternate<AF1>>,
-    PB5<Alternate<AF1>>,
+    PB5<Alternate<AF2>>,
+    PB4<Alternate<AF2>>,
     apb1enr,
     tim3en
 );
 define_rotary_encoder!(
     TIM5,
-    PA1<Alternate<AF1>>,
-    PA0<Alternate<AF1>>,
+    PA1<Alternate<AF2>>,
+    PA0<Alternate<AF2>>,
     apb1enr,
     tim5en
 );
