@@ -21,11 +21,11 @@ impl core::fmt::Debug for Knob {
 }
 
 impl Knob {
-    pub fn new(pos: Point, input_id: InputId, handler: Box<dyn FnMut(i8) -> u8>) -> Self {
+    pub fn new(pos: Point, input_id: InputId, mut handler: Box<dyn FnMut(i8) -> u8>) -> Self {
         Knob {
             pos,
             input_id,
-            value: 0,
+            value: (handler)(0),
             last_input_value: 0,
             dirty: true,
             handler,
@@ -35,8 +35,13 @@ impl Knob {
 
 impl Drawable for Knob {
     fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size) {
-        let mut buffer = [0u8; 10];
-        let render = Font6x12::render_str(self.value.numtoa_str(10, &mut buffer))
+        let mut buffer = [0u8; 3];
+        self.value.numtoa(10, &mut buffer);
+        if buffer[buffer.len() - 2] == 0 {
+            buffer[buffer.len() - 2] = b' ';
+        }
+        let text = &buffer[buffer.len() - 2..buffer.len()];
+        let render = Font6x12::render_str(unsafe { core::str::from_utf8_unchecked(text) })
             .fill(Some(BinaryColor::Off))
             .stroke(Some(BinaryColor::On))
             .translate(self.pos);
