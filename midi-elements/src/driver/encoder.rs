@@ -16,18 +16,18 @@ pub trait RotaryEncoder {
 
 #[rustfmt::skip]
 macro_rules! define_rotary_encoder {
-    ($TIMX:ident, $PIN1X:ty, $PIN2X:ty, $PERIPH_EN_REG:ident, $PERIPH_EN_FIELD:ident) => {
+    ($TIMX:ident, $PIN1X:ty, $PIN2X:ty, $PERIPH_EN_REG:ident, $PERIPH_EN_FIELD:ident, $DIV:expr) => {
         impl RotaryEncoder for stm32::$TIMX {
             type PIN1 = $PIN1X;
             type PIN2 = $PIN2X;
 
             fn read_enc(&self) -> i16 {
-                (self.cnt.read().bits() as i16) / 2
+                (self.cnt.read().bits() as i16) / $DIV
             }
 
             fn setup_enc(&self, pin1: $PIN1X, pin2: $PIN2X) {
                 let rcc = unsafe { &(*RCC::ptr()) };
-                rcc.$PERIPH_EN_REG.write(|w| w.$PERIPH_EN_FIELD().set_bit());
+                rcc.$PERIPH_EN_REG.modify(|_, w| w.$PERIPH_EN_FIELD().set_bit());
 
                 self.smcr.write(|w| w
                     .sms().encoder_mode_3()
@@ -74,26 +74,30 @@ define_rotary_encoder!(
     PA8<Alternate<AF1>>,
     PE11<Alternate<AF1>>,
     apb2enr,
-    tim1en
+    tim1en,
+    -2
 );
 define_rotary_encoder!(
     TIM2,
     PA15<Alternate<AF1>>,
     PB3<Alternate<AF1>>,
     apb1enr,
-    tim2en
+    tim2en,
+    -2
 );
 define_rotary_encoder!(
     TIM3,
     PB5<Alternate<AF2>>,
     PB4<Alternate<AF2>>,
     apb1enr,
-    tim3en
+    tim3en,
+    2
 );
 define_rotary_encoder!(
     TIM5,
     PA1<Alternate<AF2>>,
     PA0<Alternate<AF2>>,
     apb1enr,
-    tim5en
+    tim5en,
+    2
 );
