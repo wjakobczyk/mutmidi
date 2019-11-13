@@ -15,8 +15,13 @@ TODO PoC:
 * Przycisk do wyzwalania dźwięku
 
 TODO Prototyp:
-v UI Design
-* Framework UI
+* Kilka stron przełączanych przyciskami
+* Refactor mods in ui
+* Definicja wszystkich stron i parametrów
+* Wyzwalanie dźwięku 
+  * po każdym naciśnieciu dowolnego przycisku?
+  * pod przyciskiem jednego enkodera
+* Testy
 
 Etapy/milestones:
 v PoC: sterujemy jednym parametrem, wyzwalamy dźwięk przyciskiem

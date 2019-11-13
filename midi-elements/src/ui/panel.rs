@@ -10,8 +10,11 @@ pub struct Panel<'a> {
 }
 
 impl<'a> Panel<'a> {
-    pub fn new(buttons: Vec<Button<'a>, U8>, knobs: Vec<Knob, U8>) -> Self {
-        Panel { buttons, knobs }
+    pub fn new(elements: (Vec<Button<'a>, U8>, Vec<Knob, U8>)) -> Self {
+        Panel {
+            buttons: elements.0,
+            knobs: elements.1,
+        }
     }
 }
 
