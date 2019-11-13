@@ -15,12 +15,13 @@ TODO PoC:
 * Przycisk do wyzwalania dźwięku
 
 TODO Prototyp:
-* Kilka stron przełączanych przyciskami
+v Kilka stron przełączanych przyciskami
 * Refactor mods in ui
 * Definicja wszystkich stron i parametrów
 * Wyzwalanie dźwięku 
   * po każdym naciśnieciu dowolnego przycisku?
   * pod przyciskiem jednego enkodera
+  * zwiększyć głośność
 * Testy
 
 Etapy/milestones:

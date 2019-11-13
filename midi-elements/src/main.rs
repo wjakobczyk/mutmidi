@@ -170,12 +170,16 @@ impl<'a> App<'a> {
         ])
     }
 
-    pub fn change_panel(&'a mut self, panel: PanelId) {
-        if let Some(panels) = &mut self.panels {
+    pub fn change_panel(&mut self, self2: &'a mut App<'a>, panel: PanelId) {
+        if let Some(panels) = &mut self2.panels {
             self.current_panel = Some(&mut panels[panel as usize]);
         }
 
-        //TODO reset knobs to current encoder values, the same is needed on start
+        if let Some(panel) = &mut self.current_panel {
+            panel.input_reset();
+        }
+
+        self.update_knobs();
 
         if let Some(panel) = &mut self.current_panel {
             panel.render(&mut self.display);

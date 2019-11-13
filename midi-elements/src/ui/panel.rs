@@ -66,6 +66,15 @@ impl Drawable for Panel<'_> {
 }
 
 impl<'a> InputConsumer for Panel<'a> {
+    fn input_reset(&mut self) {
+        for component in self.buttons.iter_mut() {
+            component.input_reset();
+        }
+        for component in self.knobs.iter_mut() {
+            component.input_reset();
+        }
+    }
+
     fn input_update(&mut self, input_id: InputId, value: Value) {
         for component in self.buttons.iter_mut() {
             component.input_update(input_id, value);

@@ -41,11 +41,11 @@ fn setup_buttons<'a>() -> Vec<Button<'a>, U8> {
     buttons
         .push(Button::new(
             Point::new(0, 0),
-            " Bow ",
+            " Bow",
             InputDeviceId::Button1 as InputId,
             Box::new(|_value: bool| {
                 unsafe {
-                    (*APP).change_panel(PanelId::PanelBow);
+                    (*APP).change_panel(&mut *APP, PanelId::PanelBow);
                 }
                 true
             }),
@@ -54,7 +54,7 @@ fn setup_buttons<'a>() -> Vec<Button<'a>, U8> {
     buttons
         .push(Button::new(
             Point::new(26, 0),
-            "*Str*",
+            "*Str",
             InputDeviceId::Button2 as InputId,
             Box::new(|value: bool| {
                 unsafe {

@@ -18,5 +18,6 @@ pub trait Drawable {
 }
 
 pub trait InputConsumer {
+    fn input_reset(&mut self);
     fn input_update(&mut self, input_id: InputId, value: Value);
 }

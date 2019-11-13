@@ -61,6 +61,10 @@ impl Drawable for Button<'_> {
 }
 
 impl<'a> InputConsumer for Button<'a> {
+    fn input_reset(&mut self) {
+        self.dirty = true;
+    }
+
     fn input_update(&mut self, input_id: InputId, value: Value) {
         if let Value::Bool(value) = value {
             if input_id == self.input_id && value != self.pressed {

@@ -3,13 +3,11 @@ use alloc::boxed::Box;
 use embedded_graphics::{fonts::Font6x12, prelude::*};
 use numtoa::NumToA;
 
-static DELTA_THRESHOLD: i32 = 10;
-
 pub struct Knob {
     pub pos: Point,
     input_id: InputId,
     value: u8,
-    last_input_value: i32,
+    last_input_value: Option<i32>,
     dirty: bool,
     handler: Box<dyn FnMut(i8) -> u8>,
 }
@@ -26,7 +24,7 @@ impl Knob {
             pos,
             input_id,
             value: (handler)(0),
-            last_input_value: 0,
+            last_input_value: None,
             dirty: true,
             handler,
         }
@@ -57,15 +55,24 @@ impl Drawable for Knob {
 }
 
 impl InputConsumer for Knob {
+    fn input_reset(&mut self) {
+        self.last_input_value = None;
+    }
+
     fn input_update(&mut self, input_id: InputId, value: Value) {
         if let Value::Int(input_value) = value {
             if input_id == self.input_id {
-                let delta = input_value - self.last_input_value;
-                if delta != 0 && delta < DELTA_THRESHOLD && delta > -DELTA_THRESHOLD {
-                    self.value = (self.handler)(delta as i8);
+                if let Some(last_input_value) = self.last_input_value {
+                    let delta = input_value - last_input_value;
+                    if delta != 0 {
+                        self.value = (self.handler)(delta as i8);
+                        self.dirty = true;
+                    }
+                } else {
+                    self.value = (self.handler)(0);
                     self.dirty = true;
                 }
-                self.last_input_value = input_value;
+                self.last_input_value = Some(input_value);
             }
         }
     }
