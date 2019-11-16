@@ -30,7 +30,7 @@ use st7920::ST7920;
 use embedded_hal::digital::v2::InputPin;
 
 mod ui;
-use ui::{framework::*, panel::Panel};
+use ui::framework::*;
 
 use ui::{panel_bow, panel_strike};
 

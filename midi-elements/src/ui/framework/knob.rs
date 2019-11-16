@@ -1,4 +1,4 @@
-use super::framework::*;
+use super::*;
 use alloc::boxed::Box;
 use embedded_graphics::{fonts::Font6x12, prelude::*};
 use numtoa::NumToA;

@@ -16,7 +16,7 @@ TODO PoC:
 
 TODO Prototyp:
 v Kilka stron przełączanych przyciskami
-* Refactor mods in ui
+v Refactor mods in ui
 * Definicja wszystkich stron i parametrów
 * Wyzwalanie dźwięku 
   * po każdym naciśnieciu dowolnego przycisku?

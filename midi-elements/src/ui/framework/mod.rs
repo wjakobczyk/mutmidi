@@ -1,3 +1,11 @@
+pub mod button;
+pub mod knob;
+pub mod panel;
+
+pub use button::Button;
+pub use knob::Knob;
+pub use panel::Panel;
+
 pub use embedded_graphics::{
     geometry::{Point, Size},
     pixelcolor::BinaryColor,
