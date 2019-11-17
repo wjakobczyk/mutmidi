@@ -3,7 +3,7 @@ use alloc::boxed::Box;
 use embedded_graphics::{fonts::Font6x12, prelude::*};
 
 pub struct Button<'a> {
-    pub pos: Point,
+    pos: Point,
     caption: &'a str,
     input_id: InputId,
     pressed: bool,
@@ -13,7 +13,7 @@ pub struct Button<'a> {
 
 impl<'a> core::fmt::Debug for Button<'a> {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        write!(f, "Button({})", self.input_id)
+        write!(f, "Button({})", self.caption)
     }
 }
 

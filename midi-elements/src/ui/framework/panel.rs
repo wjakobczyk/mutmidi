@@ -6,11 +6,11 @@ use super::{button::Button, knob::Knob};
 
 pub struct Panel<'a> {
     buttons: Vec<Button<'a>, U8>,
-    knobs: Vec<Knob, U8>,
+    knobs: Vec<Knob<'a>, U8>,
 }
 
 impl<'a> Panel<'a> {
-    pub fn new(elements: (Vec<Button<'a>, U8>, Vec<Knob, U8>)) -> Self {
+    pub fn new(elements: (Vec<Button<'a>, U8>, Vec<Knob<'a>, U8>)) -> Self {
         Panel {
             buttons: elements.0,
             knobs: elements.1,

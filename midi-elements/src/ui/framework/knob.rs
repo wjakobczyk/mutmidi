@@ -1,10 +1,12 @@
 use super::*;
 use alloc::boxed::Box;
+use core::cmp::max;
 use embedded_graphics::{fonts::Font6x12, prelude::*};
 use numtoa::NumToA;
 
-pub struct Knob {
-    pub pos: Point,
+pub struct Knob<'a> {
+    pos: Point,
+    caption: &'a str,
     input_id: InputId,
     value: u8,
     last_input_value: Option<i32>,
@@ -12,16 +14,22 @@ pub struct Knob {
     handler: Box<dyn FnMut(i8) -> u8>,
 }
 
-impl core::fmt::Debug for Knob {
+impl<'a> core::fmt::Debug for Knob<'a> {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        write!(f, "Knob({})", self.input_id)
+        write!(f, "Knob({})", self.caption)
     }
 }
 
-impl Knob {
-    pub fn new(pos: Point, input_id: InputId, mut handler: Box<dyn FnMut(i8) -> u8>) -> Self {
+impl<'a> Knob<'a> {
+    pub fn new(
+        pos: Point,
+        caption: &'a str,
+        input_id: InputId,
+        mut handler: Box<dyn FnMut(i8) -> u8>,
+    ) -> Self {
         Knob {
             pos,
+            caption,
             input_id,
             value: (handler)(0),
             last_input_value: None,
@@ -31,22 +39,34 @@ impl Knob {
     }
 }
 
-impl Drawable for Knob {
+impl Drawable for Knob<'_> {
     fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size) {
+        let render_caption = Font6x12::render_str(&self.caption)
+            .fill(Some(BinaryColor::Off))
+            .stroke(Some(BinaryColor::On))
+            .translate(self.pos);
+        drawing.draw(render_caption);
+
         let mut buffer = [0u8; 3];
         self.value.numtoa(10, &mut buffer);
         if buffer[buffer.len() - 2] == 0 {
             buffer[buffer.len() - 2] = b' ';
         }
         let text = &buffer[buffer.len() - 2..buffer.len()];
-        let render = Font6x12::render_str(unsafe { core::str::from_utf8_unchecked(text) })
+        let render_value = Font6x12::render_str(unsafe { core::str::from_utf8_unchecked(text) })
             .fill(Some(BinaryColor::Off))
             .stroke(Some(BinaryColor::On))
-            .translate(self.pos);
-        drawing.draw(render);
+            .translate(self.pos + Point::new(0, render_caption.size().height as i32));
+        drawing.draw(render_value);
         self.dirty = false;
 
-        (self.pos, render.size())
+        (
+            self.pos,
+            Size::new(
+                max(render_caption.size().width, render_value.size().width),
+                render_caption.size().height + render_value.size().height,
+            ),
+        )
     }
 
     fn is_dirty(&self) -> bool {
@@ -54,7 +74,7 @@ impl Drawable for Knob {
     }
 }
 
-impl InputConsumer for Knob {
+impl InputConsumer for Knob<'_> {
     fn input_reset(&mut self) {
         self.last_input_value = None;
     }
