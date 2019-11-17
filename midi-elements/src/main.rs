@@ -181,6 +181,14 @@ impl<'a> App<'a> {
 
         self.update_knobs();
 
+        self.display.draw(
+            Rectangle::new(
+                Point::new(0, 0),
+                Point::new(st7920::WIDTH - 1, st7920::HEIGHT - 1),
+            )
+            .fill(Some(BinaryColor::Off)),
+        );
+
         if let Some(panel) = &mut self.current_panel {
             panel.render(&mut self.display);
             self.display
