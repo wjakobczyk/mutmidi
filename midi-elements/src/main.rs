@@ -32,10 +32,13 @@ use embedded_hal::digital::v2::InputPin;
 mod ui;
 use ui::framework::*;
 
-use ui::{panel_bow, panel_strike};
+use ui::*;
 
 mod elements_handlers;
 use elements_handlers::*;
+
+use embedded_graphics::prelude::*;
+use embedded_graphics::primitives::Rectangle;
 
 #[global_allocator]
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
@@ -55,7 +58,10 @@ enum InputDeviceId {
 
 enum PanelId {
     PanelBow,
+    PanelBlow,
     PanelStrike,
+    PanelRes1,
+    PanelRes2,
 }
 
 struct App<'a> {
@@ -80,7 +86,7 @@ struct App<'a> {
     >,
     encoders: (TIM2, TIM3, TIM5, TIM1),
     delay: Delay,
-    panels: Option<[Panel<'a>; 2]>,
+    panels: Option<[Panel<'a>; 5]>,
     current_panel: Option<&'a mut Panel<'a>>,
 }
 
@@ -166,7 +172,10 @@ impl<'a> App<'a> {
     fn setup_ui(&mut self) {
         self.panels = Some([
             Panel::new(panel_bow::setup()),
+            Panel::new(panel_blow::setup()),
             Panel::new(panel_strike::setup()),
+            Panel::new(panel_res1::setup()),
+            Panel::new(panel_res2::setup()),
         ])
     }
 

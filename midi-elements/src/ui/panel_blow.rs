@@ -15,7 +15,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>, U8> {
             Point::new(KNOB_POS_X[0], KNOB_POS_Y),
             "Lvl",
             InputDeviceId::Knob1 as InputId,
-            create_knob_handler(Param::ExcStrikeLevel),
+            create_knob_handler(Param::ExcBlowLevel),
         ))
         .unwrap();
     knobs
@@ -23,15 +23,23 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>, U8> {
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
             "Tmbr",
             InputDeviceId::Knob2 as InputId,
-            create_knob_handler(Param::ExcStrikeTimbre),
+            create_knob_handler(Param::ExcBlowTimbre),
+        ))
+        .unwrap();
+    knobs
+        .push(Knob::new(
+            Point::new(KNOB_POS_X[2], KNOB_POS_Y),
+            "Cntr",
+            InputDeviceId::Knob3 as InputId,
+            create_knob_handler(Param::ExcEnvShape),
         ))
         .unwrap();
     knobs
         .push(Knob::new(
             Point::new(KNOB_POS_X[3], KNOB_POS_Y),
-            "Mllt",
+            "Flow",
             InputDeviceId::Knob4 as InputId,
-            create_knob_handler(Param::ExcStrikeMeta),
+            create_knob_handler(Param::ExcBlowMeta),
         ))
         .unwrap();
 
@@ -39,5 +47,5 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>, U8> {
 }
 
 pub fn setup<'a>() -> (Vec<Button<'a>, U8>, Vec<Knob<'a>, U8>) {
-    (super::panel_bow::setup_exciter_buttons(2), setup_knobs())
+    (super::panel_bow::setup_exciter_buttons(1), setup_knobs())
 }
