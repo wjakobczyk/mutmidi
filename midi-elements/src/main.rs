@@ -40,9 +40,11 @@ use elements_handlers::*;
 use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::Rectangle;
 
+use alloc::boxed::Box;
+
 #[global_allocator]
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
-const HEAP_SIZE: usize = 1024; // in bytes
+const HEAP_SIZE: usize = 4 * 1024; // in bytes
 
 enum InputDeviceId {
     Button1,
@@ -279,9 +281,9 @@ static mut APP: *mut App = 0 as *mut App;
 fn main() -> ! {
     unsafe { ALLOCATOR.init(cortex_m_rt::heap_start() as usize, HEAP_SIZE) }
 
-    let mut app = App::new();
+    let mut app = Box::new(App::new());
     unsafe {
-        APP = &mut app as *mut App;
+        APP = &mut *app as *mut App;
     }
 
     app.setup_ui();
