@@ -1,16 +1,14 @@
 use super::*;
-use heapless::consts::U8;
-use heapless::Vec;
-
 use super::{button::Button, knob::Knob};
+use alloc::vec::Vec;
 
 pub struct Panel<'a> {
-    buttons: Vec<Button<'a>, U8>,
-    knobs: Vec<Knob<'a>, U8>,
+    buttons: Vec<Button<'a>>,
+    knobs: Vec<Knob<'a>>,
 }
 
 impl<'a> Panel<'a> {
-    pub fn new(elements: (Vec<Button<'a>, U8>, Vec<Knob<'a>, U8>)) -> Self {
+    pub fn new(elements: (Vec<Button<'a>>, Vec<Knob<'a>>)) -> Self {
         Panel {
             buttons: elements.0,
             knobs: elements.1,
