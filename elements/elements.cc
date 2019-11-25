@@ -184,19 +184,19 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
 #endif  // PROFILE_INTERRUPT
 }
 
-Patch *GetPatch() {
+Patch *Elements_GetPatch() {
   return part.mutable_patch();
 }
 
-void SetGate(bool newGate) {
+void Elements_SetGate(bool newGate) {
   gate = newGate;
 }
 
-void Pause(bool pause) {
+void Elements_Pause(bool pause) {
   codec.Pause(pause);
 }
 
-void Init(bool application) {
+void Elements_Init(bool application) {
   System sys;
   
   sys.Init(application);
@@ -237,7 +237,7 @@ void delay(int time)
 
 void TestElements(bool application) {
 
-  Init(application);
+  Elements_Init(application);
 
   gate = true;
     

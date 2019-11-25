@@ -25,9 +25,9 @@ pub struct Patch {
 
 #[link(name = "elements")]
 extern "C" {
-    pub fn Init(application: bool);
-    pub fn GetPatch() -> *mut Patch;
-    pub fn SetGate(newGate: bool);
-    pub fn Pause(pause: bool);
+    pub fn Elements_Init(application: bool);
+    pub fn Elements_GetPatch() -> *mut Patch;
+    pub fn Elements_SetGate(newGate: bool);
+    pub fn Elements_Pause(pause: bool);
     pub fn Elements_DMA1_Stream5_IRQHandler();
 }

@@ -38,7 +38,7 @@ pub fn clamp(value: f32, min: f32, max: f32) -> f32 {
 macro_rules! param_bind {
     ($PARAM:ident) => {
         Box::new(|delta: i8| unsafe {
-            let patch = &mut *GetPatch();
+            let patch = &mut *Elements_GetPatch();
             patch.$PARAM += (delta as f32) / KNOB_SCALER;
             patch.$PARAM = clamp(patch.$PARAM, PARAM_MIN, PARAM_MAX);
             (patch.$PARAM * KNOB_SCALER) as u8

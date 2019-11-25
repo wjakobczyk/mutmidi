@@ -160,7 +160,7 @@ impl<'a> App<'a> {
         display.clear(&mut delay).expect("could not clear display");
 
         unsafe {
-            Init(false);
+            Elements_Init(false);
         }
 
         App {
@@ -186,7 +186,7 @@ impl<'a> App<'a> {
 
     fn pause_synth(pause: bool) {
         unsafe {
-            Pause(pause);
+            Elements_Pause(pause);
         }
     }
 
@@ -222,7 +222,7 @@ impl<'a> App<'a> {
 
     pub fn trigger_note(&mut self, trigger: bool) {
         unsafe {
-            SetGate(trigger);
+            Elements_SetGate(trigger);
         }
     }
 

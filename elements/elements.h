@@ -3,9 +3,9 @@
 #include "dsp/patch.h"
 
 extern "C" {
-  void Init(bool application);
-  elements::Patch *GetPatch();
-  void Pause(bool pause);
-  void SetGate(bool newGate);
+  void Elements_Init(bool application);
+  elements::Patch *Elements_GetPatch();
+  void Elements_Pause(bool pause);
+  void Elements_SetGate(bool newGate);
   void Elements_DMA1_Stream5_IRQHandler(void);
 }
