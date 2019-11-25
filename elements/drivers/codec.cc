@@ -683,7 +683,9 @@ void Codec::Stop() {
 }
 
 void Codec::Fill(size_t offset) {
-  if (kNumFIFOChunks) {
+  if (paused_) {
+    memset(&tx_dma_buffer_[offset], 0, kAudioChunkSize * sizeof(Frame));
+  } else if (kNumFIFOChunks) {
     // Write input samples to FIFO, Read output samples from FIFO
     rx_buffer_.Overwrite(&rx_dma_buffer_[offset], kAudioChunkSize);
     tx_buffer_.ImmediateRead(&tx_dma_buffer_[offset], kAudioChunkSize);

@@ -184,6 +184,12 @@ impl<'a> App<'a> {
         ])
     }
 
+    fn pause_synth(pause: bool) {
+        unsafe {
+            Pause(pause);
+        }
+    }
+
     pub fn change_panel(&mut self, self2: &'a mut App<'a>, panel: PanelId) {
         if let Some(panels) = &mut self2.panels {
             self.current_panel = Some(&mut panels[panel as usize]);
@@ -194,6 +200,7 @@ impl<'a> App<'a> {
         }
 
         self.update_knobs();
+        App::pause_synth(true);
 
         self.display.draw(
             Rectangle::new(
@@ -209,6 +216,8 @@ impl<'a> App<'a> {
                 .flush(&mut self.delay)
                 .expect("could not flush display");
         }
+
+        App::pause_synth(false);
     }
 
     pub fn trigger_note(&mut self, trigger: bool) {

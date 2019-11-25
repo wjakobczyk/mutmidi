@@ -192,6 +192,10 @@ void SetGate(bool newGate) {
   gate = newGate;
 }
 
+void Pause(bool pause) {
+  codec.Pause(pause);
+}
+
 void Init(bool application) {
   System sys;
   

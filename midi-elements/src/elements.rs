@@ -28,5 +28,6 @@ extern "C" {
     pub fn Init(application: bool);
     pub fn GetPatch() -> *mut Patch;
     pub fn SetGate(newGate: bool);
+    pub fn Pause(pause: bool);
     pub fn Elements_DMA1_Stream5_IRQHandler();
 }

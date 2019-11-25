@@ -121,6 +121,9 @@ class Codec {
   
   bool Start(FillBufferCallback callback);
   void Stop();
+  void Pause(bool pause) {
+    paused_ = pause;
+  }
   
   void Fill(size_t offset);
 
@@ -170,6 +173,7 @@ class Codec {
   
   static Codec* instance_;
   
+  bool paused_;
   bool use_buffering_;
   size_t transmitted_;
   size_t processed_;

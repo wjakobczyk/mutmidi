@@ -19,7 +19,7 @@ v Kilka stron przełączanych przyciskami
 v Refactor mods in ui
 v Definicja wszystkich stron i parametrów
 v Bug: akcja przyciski wywoływana w kółko cały czas jak naciśniętu
-* Zablokowanie generowania dźwięku podczas odświeżania całego ekranu
+v Zablokowanie generowania dźwięku podczas odświeżania całego ekranu
 * Wyzwalanie dźwięku 
   * pod przyciskiem jednego enkodera
 * Testy
