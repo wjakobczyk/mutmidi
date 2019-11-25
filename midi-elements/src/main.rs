@@ -62,8 +62,8 @@ enum PanelId {
     PanelBow,
     PanelBlow,
     PanelStrike,
-    PanelRes1,
-    PanelRes2,
+    PanelRes,
+    PanelOutput,
 }
 
 struct App<'a> {
@@ -176,8 +176,8 @@ impl<'a> App<'a> {
             Panel::new(panel_bow::setup()),
             Panel::new(panel_blow::setup()),
             Panel::new(panel_strike::setup()),
-            Panel::new(panel_res1::setup()),
-            Panel::new(panel_res2::setup()),
+            Panel::new(panel_res::setup()),
+            Panel::new(panel_out::setup()),
         ])
     }
 

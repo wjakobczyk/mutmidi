@@ -17,11 +17,11 @@ TODO PoC:
 TODO Prototyp:
 v Kilka stron przełączanych przyciskami
 v Refactor mods in ui
-* Definicja wszystkich stron i parametrów
+v Definicja wszystkich stron i parametrów
+* Bug: akcja przyciski wywoływana w kółko cały czas jak naciśniętu
+* Zablokowanie generowania dźwięku podczas odświeżania całego ekranu
 * Wyzwalanie dźwięku 
-  * po każdym naciśnieciu dowolnego przycisku?
   * pod przyciskiem jednego enkodera
-  * zwiększyć głośność
 * Testy
 
 Etapy/milestones:
@@ -49,9 +49,9 @@ UI Design:
   * Blow: Mix, Timbre, Contour (the same as in Bow), Flow
   * Strike: Mix, Timbre, empty, Mallet
     * Przyciski Bow, Blow, Strike, Resonator, System
-  * Resonator1: Geometry, Brightness, Damping, Position
-  * Resonator2: Tune coarse, Tune fine, Space
-    * Przyciski Resonator1, Resonator2, empty, Exciter, System
+  * Resonator: Geometry, Brightness, Damping, Position
+  * Output: Space
+    * Przyciski Resonator, Output, empty, Exciter, System
   * Config: Midi channel
   * Patch: Browse, Load, Save
     * Przyciski: Patch, Config, empty, Exciter, Resonator

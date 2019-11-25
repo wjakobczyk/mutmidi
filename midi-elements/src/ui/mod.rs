@@ -1,8 +1,8 @@
 pub mod framework;
 pub mod panel_blow;
 pub mod panel_bow;
-pub mod panel_res1;
-pub mod panel_res2;
+pub mod panel_out;
+pub mod panel_res;
 pub mod panel_strike;
 
 pub const KNOB_POS_X: [i32; 4] = [0, 32, 64, 96];

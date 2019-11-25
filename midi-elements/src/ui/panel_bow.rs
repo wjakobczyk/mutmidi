@@ -75,7 +75,7 @@ pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             InputDeviceId::Button4 as InputId,
             Box::new(|value: bool| {
                 unsafe {
-                    (*APP).change_panel(&mut *APP, PanelId::PanelRes1);
+                    (*APP).change_panel(&mut *APP, PanelId::PanelRes);
                     (*APP).trigger_note(value);
                 }
                 true
