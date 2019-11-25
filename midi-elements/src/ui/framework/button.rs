@@ -6,7 +6,7 @@ pub struct Button<'a> {
     pos: Point,
     caption: &'a str,
     input_id: InputId,
-    pressed: bool,
+    highlight: bool,
     dirty: bool,
     handler: Box<dyn FnMut(bool) -> bool>,
 }
@@ -28,7 +28,7 @@ impl<'a> Button<'a> {
             pos,
             caption,
             input_id,
-            pressed: false,
+            highlight: false,
             dirty: true,
             handler,
         }
@@ -38,12 +38,12 @@ impl<'a> Button<'a> {
 impl Drawable for Button<'_> {
     fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size) {
         let render = Font6x12::render_str(&self.caption)
-            .fill(Some(if self.pressed {
+            .fill(Some(if self.highlight {
                 BinaryColor::On
             } else {
                 BinaryColor::Off
             }))
-            .stroke(Some(if self.pressed {
+            .stroke(Some(if self.highlight {
                 BinaryColor::Off
             } else {
                 BinaryColor::On
@@ -67,9 +67,8 @@ impl<'a> InputConsumer for Button<'a> {
 
     fn input_update(&mut self, input_id: InputId, value: Value) {
         if let Value::Bool(value) = value {
-            if input_id == self.input_id && value != self.pressed {
+            if input_id == self.input_id {
                 if (self.handler)(value) {
-                    self.pressed = value;
                     self.dirty = true;
                 }
             }

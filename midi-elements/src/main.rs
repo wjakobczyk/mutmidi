@@ -46,6 +46,7 @@ use alloc::boxed::Box;
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 const HEAP_SIZE: usize = 4 * 1024; // in bytes
 
+#[derive(Clone, Copy)]
 enum InputDeviceId {
     Button1,
     Button2,
@@ -74,6 +75,7 @@ struct App<'a> {
         gpiod::PD11<Input<PullUp>>,
         gpiob::PB11<Input<PullUp>>,
     ),
+    button_states: [bool; 5],
     display: st7920::ST7920<
         Spi<
             SPI2,
@@ -163,6 +165,7 @@ impl<'a> App<'a> {
 
         App {
             button_pins,
+            button_states: [false; 5],
             display,
             encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
             delay,
@@ -235,29 +238,36 @@ impl<'a> App<'a> {
         };
     }
 
-    fn update_buttons(&mut self) {
-        if let Some(panel) = &mut self.current_panel {
-            panel.input_update(
-                InputDeviceId::Button1 as InputId,
-                Value::Bool(!self.button_pins.0.is_high().unwrap()),
-            );
-            panel.input_update(
-                InputDeviceId::Button2 as InputId,
-                Value::Bool(!self.button_pins.1.is_high().unwrap()),
-            );
-            panel.input_update(
-                InputDeviceId::Button3 as InputId,
-                Value::Bool(!self.button_pins.2.is_high().unwrap()),
-            );
-            panel.input_update(
-                InputDeviceId::Button4 as InputId,
-                Value::Bool(!self.button_pins.3.is_high().unwrap()),
-            );
-            panel.input_update(
-                InputDeviceId::Button5 as InputId,
-                Value::Bool(!self.button_pins.4.is_high().unwrap()),
-            );
+    fn update_button(&mut self, id: InputDeviceId, value: bool) {
+        if value && value != self.button_states[id as usize] {
+            if let Some(panel) = &mut self.current_panel {
+                panel.input_update(id as InputId, Value::Bool(value));
+            };
         }
+        self.button_states[id as usize] = value;
+    }
+
+    fn update_buttons(&mut self) {
+        self.update_button(
+            InputDeviceId::Button1,
+            !self.button_pins.0.is_high().unwrap(),
+        );
+        self.update_button(
+            InputDeviceId::Button2,
+            !self.button_pins.1.is_high().unwrap(),
+        );
+        self.update_button(
+            InputDeviceId::Button3,
+            !self.button_pins.2.is_high().unwrap(),
+        );
+        self.update_button(
+            InputDeviceId::Button4,
+            !self.button_pins.3.is_high().unwrap(),
+        );
+        self.update_button(
+            InputDeviceId::Button5,
+            !self.button_pins.4.is_high().unwrap(),
+        );
     }
 
     fn update(&mut self) {
