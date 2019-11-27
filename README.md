@@ -15,17 +15,32 @@ TODO PoC:
 * Przycisk do wyzwalania dźwięku
 
 TODO Prototyp:
+Alpha I
+* Hardware
+* Biblioteka midi-port - note on/off
+  * PoC polling
+  * Async: IRQ/DMA
+* Integracja w aplikacji
+Alpha II
+* Biblioteka midi-port - control change/aftertouch/pitchbend/modulation/etc
+* Integracja w aplikacji
+
+midi-port API:
+* enum MidiMessage
+* register_handler(channel, handler_fn(channel, MidiMessage) -> ())
+
+DONE Prototyp:
 v Kilka stron przełączanych przyciskami
 v Refactor mods in ui
 v Definicja wszystkich stron i parametrów
 v Bug: akcja przyciski wywoływana w kółko cały czas jak naciśniętu
 v Zablokowanie generowania dźwięku podczas odświeżania całego ekranu
 v Wyzwalanie dźwięku pod przyciskiem jednego enkodera
-* Testy
+v Testy
 
 Etapy/milestones:
 v PoC: sterujemy jednym parametrem, wyzwalamy dźwięk przyciskiem
-* Prototyp: sterujemy wszystkimi parametrami dostępnymi na kilku stronach UI
+v Prototyp: sterujemy wszystkimi parametrami dostępnymi na kilku stronach UI
 * Alpha: obsługa wejścia MIDI
 * Complete: zapisywanie patchy, konfiguracja
 * Release: dedykowane PCB, obudowa
