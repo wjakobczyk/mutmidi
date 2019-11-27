@@ -20,8 +20,7 @@ v Refactor mods in ui
 v Definicja wszystkich stron i parametrów
 v Bug: akcja przyciski wywoływana w kółko cały czas jak naciśniętu
 v Zablokowanie generowania dźwięku podczas odświeżania całego ekranu
-* Wyzwalanie dźwięku 
-  * pod przyciskiem jednego enkodera
+v Wyzwalanie dźwięku pod przyciskiem jednego enkodera
 * Testy
 
 Etapy/milestones:

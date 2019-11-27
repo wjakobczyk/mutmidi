@@ -75,6 +75,7 @@ struct App<'a> {
         gpiod::PD11<Input<PullUp>>,
         gpiob::PB11<Input<PullUp>>,
     ),
+    trigger_pin: gpioe::PE9<Input<PullUp>>,
     button_states: [bool; 5],
     display: st7920::ST7920<
         Spi<
@@ -148,6 +149,7 @@ impl<'a> App<'a> {
             gpiod.pd11.into_pull_up_input(),
             gpiob.pb11.into_pull_up_input(),
         );
+        let trigger_pin = gpioe.pe9.into_pull_up_input();
 
         let mut display = ST7920::new(
             spi,
@@ -165,6 +167,7 @@ impl<'a> App<'a> {
 
         App {
             button_pins,
+            trigger_pin,
             button_states: [false; 5],
             display,
             encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
@@ -291,6 +294,8 @@ impl<'a> App<'a> {
                     .expect("could not flush display");
             }
         }
+
+        self.trigger_note(!self.trigger_pin.is_high().unwrap());
     }
 }
 
