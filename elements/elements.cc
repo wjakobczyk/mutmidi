@@ -146,6 +146,8 @@ const float kNoiseGateThreshold = 0.0001f;
 float strike_in_level = 0.0f;
 float blow_in_level = 0.0f;
 bool gate = false;
+float note = 50;
+float strength = 1;
 
 void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
 #ifdef PROFILE_INTERRUPT
@@ -154,9 +156,9 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
   PerformanceState s;
   //cv_scaler.Read(part.mutable_patch(), &s);
   s.gate = gate;
-  s.note = 50;
+  s.note = note;
   s.modulation = 0;
-  s.strength = 1;
+  s.strength = strength;
   for (size_t i = 0; i < n; ++i) {
     float blow_in_sample = static_cast<float>(input[i].r) / 32768.0f;
     float strike_in_sample = static_cast<float>(input[i].l) / 32768.0f;
@@ -190,6 +192,14 @@ Patch *Elements_GetPatch() {
 
 void Elements_SetGate(bool newGate) {
   gate = newGate;
+}
+
+void Elements_SetNote(float newNote) {
+  note = newNote;
+}
+
+void Elements_SetStrength(float newStrength) {
+  strength = newStrength;
 }
 
 void Elements_Pause(bool pause) {

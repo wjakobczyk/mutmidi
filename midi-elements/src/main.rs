@@ -255,12 +255,6 @@ impl<'a> App<'a> {
         App::pause_synth(false);
     }
 
-    pub fn trigger_note(&mut self, trigger: bool) {
-        unsafe {
-            Elements_SetGate(trigger);
-        }
-    }
-
     fn update_knobs(&mut self) {
         if let Some(panel) = &mut self.current_panel {
             panel.input_update(
@@ -328,13 +322,32 @@ impl<'a> App<'a> {
         }
     }
 
+    pub fn handle_note(&mut self, on: bool, note: NoteNumber, velocity: u8) {
+        unsafe {
+            Elements_SetGate(on);
+            if on {
+                Elements_SetNote(note as f32);
+                Elements_SetStrength((velocity as f32) / 127.0);
+                Elements_SetModulation(0.0);
+            }
+        }
+    }
+
     fn handle_midi_irq(&mut self) {
         self.midi_in.poll_uart();
 
         if let Some(message) = self.midi_in.get_message() {
             match message {
-                MidiMessage::NoteOn { note, velocity } => self.trigger_note(true),
-                MidiMessage::NoteOff { note, velocity } => self.trigger_note(false),
+                MidiMessage::NoteOn {
+                    channel: _,
+                    note,
+                    velocity,
+                } => self.handle_note(true, note, velocity),
+                MidiMessage::NoteOff {
+                    channel: _,
+                    note,
+                    velocity,
+                } => self.handle_note(false, note, velocity),
                 _ => (),
             };
         }
