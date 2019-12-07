@@ -43,10 +43,9 @@ pub fn setup_resonator_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             Point::new(BUTTON_POS_X[0], BUTTON_POS_Y),
             if active == 0 { "*Res1" } else { " Res1" },
             InputDeviceId::Button1 as InputId,
-            Box::new(|value: bool| {
+            Box::new(|_value: bool| {
                 unsafe {
                     (*APP).change_panel(&mut *APP, PanelId::PanelRes);
-                    (*APP).trigger_note(value);
                 }
                 true
             }),
@@ -55,10 +54,9 @@ pub fn setup_resonator_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             Point::new(BUTTON_POS_X[1], BUTTON_POS_Y),
             if active == 1 { "*Res2" } else { " Res2" },
             InputDeviceId::Button2 as InputId,
-            Box::new(|value: bool| {
+            Box::new(|_value: bool| {
                 unsafe {
                     (*APP).change_panel(&mut *APP, PanelId::PanelOutput);
-                    (*APP).trigger_note(value);
                 }
                 true
             }),
@@ -67,10 +65,9 @@ pub fn setup_resonator_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             Point::new(BUTTON_POS_X[3], BUTTON_POS_Y),
             "Exc",
             InputDeviceId::Button4 as InputId,
-            Box::new(|value: bool| {
+            Box::new(|_value: bool| {
                 unsafe {
                     (*APP).change_panel(&mut *APP, PanelId::PanelBow);
-                    (*APP).trigger_note(value);
                 }
                 true
             }),

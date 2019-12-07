@@ -14,8 +14,11 @@ use cortex_m::peripheral::Peripherals;
 use cortex_m_rt::entry;
 use hal::delay::Delay;
 use hal::gpio::*;
+use hal::serial::config::*;
+use hal::serial::*;
 use hal::spi::*;
 use hal::stm32;
+use hal::stm32::UART4;
 use stm32f4::stm32f407::{interrupt, SPI2, TIM1, TIM2, TIM3, TIM5};
 use stm32f4xx_hal as hal;
 use stm32f4xx_hal::rcc::RccExt;
@@ -26,6 +29,8 @@ mod driver;
 use driver::encoder::RotaryEncoder;
 
 use st7920::ST7920;
+
+use midi_port::*;
 
 use embedded_hal::digital::v2::InputPin;
 
@@ -67,6 +72,8 @@ enum PanelId {
     PanelOutput,
 }
 
+type MidiUart = Serial<UART4, (NoTx, gpioc::PC11<Alternate<AF8>>)>;
+
 struct App<'a> {
     button_pins: (
         gpioe::PE7<Input<PullUp>>,
@@ -75,7 +82,7 @@ struct App<'a> {
         gpiod::PD11<Input<PullUp>>,
         gpiob::PB11<Input<PullUp>>,
     ),
-    trigger_pin: gpioe::PE9<Input<PullUp>>,
+    _trigger_pin: gpioe::PE9<Input<PullUp>>,
     button_states: [bool; 5],
     display: st7920::ST7920<
         Spi<
@@ -89,6 +96,7 @@ struct App<'a> {
         gpioe::PE13<Output<PushPull>>,
         gpioe::PE13<Output<PushPull>>,
     >,
+    midi_in: MidiInPort<MidiUart>,
     encoders: (TIM2, TIM3, TIM5, TIM1),
     delay: Delay,
     panels: Option<[Panel<'a>; 5]>,
@@ -98,7 +106,7 @@ struct App<'a> {
 impl<'a> App<'a> {
     fn new() -> Self {
         let p = stm32::Peripherals::take().unwrap();
-        let cp = Peripherals::take().unwrap();
+        let mut cp = Peripherals::take().unwrap();
         let rcc = p.RCC.constrain();
 
         let clocks = rcc
@@ -109,6 +117,7 @@ impl<'a> App<'a> {
 
         let gpioa = p.GPIOA.split();
         let gpiob = p.GPIOB.split();
+        let gpioc = p.GPIOC.split();
         let gpiod = p.GPIOD.split();
         let gpioe = p.GPIOE.split();
 
@@ -149,7 +158,7 @@ impl<'a> App<'a> {
             gpiod.pd11.into_pull_up_input(),
             gpiob.pb11.into_pull_up_input(),
         );
-        let trigger_pin = gpioe.pe9.into_pull_up_input();
+        let _trigger_pin = gpioe.pe9.into_pull_up_input();
 
         let mut display = ST7920::new(
             spi,
@@ -161,15 +170,38 @@ impl<'a> App<'a> {
         display.init(&mut delay).expect("could not  display");
         display.clear(&mut delay).expect("could not clear display");
 
+        let mut midi_uart = Serial::uart4(
+            p.UART4,
+            (NoTx, gpioc.pc11.into_alternate_af8()),
+            Config {
+                baudrate: stm32f4xx_hal::time::Bps(31250),
+                wordlength: WordLength::DataBits8,
+                parity: Parity::ParityNone,
+                stopbits: StopBits::STOP1,
+            },
+            clocks,
+        )
+        .unwrap();
+        midi_uart.listen(hal::serial::Event::Rxne);
+        unsafe {
+            cortex_m::peripheral::NVIC::unmask(stm32f4::stm32f407::Interrupt::UART4);
+            cp.NVIC
+                .set_priority(stm32f4::stm32f407::Interrupt::UART4, 0);
+        }
+        let midi_in = MidiInPort::new(midi_uart);
+
         unsafe {
             Elements_Init(false);
+            cp.NVIC
+                .set_priority(stm32f4::stm32f407::Interrupt::DMA1_STREAM5, 16);
         }
 
         App {
             button_pins,
-            trigger_pin,
+            _trigger_pin,
             button_states: [false; 5],
             display,
+            midi_in,
             encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
             delay,
             panels: None,
@@ -294,8 +326,18 @@ impl<'a> App<'a> {
                     .expect("could not flush display");
             }
         }
+    }
 
-        self.trigger_note(!self.trigger_pin.is_high().unwrap());
+    fn handle_midi_irq(&mut self) {
+        self.midi_in.poll_uart();
+
+        if let Some(message) = self.midi_in.get_message() {
+            match message {
+                MidiMessage::NoteOn { note, velocity } => self.trigger_note(true),
+                MidiMessage::NoteOff { note, velocity } => self.trigger_note(false),
+                _ => (),
+            };
+        }
     }
 }
 
@@ -317,6 +359,13 @@ fn main() -> ! {
 
     loop {
         app.update();
+    }
+}
+
+#[interrupt]
+fn UART4() {
+    unsafe {
+        (*APP).handle_midi_irq();
     }
 }
 

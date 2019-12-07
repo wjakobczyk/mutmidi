@@ -16,18 +16,12 @@ TODO PoC:
 
 TODO Prototyp:
 Alpha I
-* Hardware
-* Biblioteka midi-port - note on/off
-  * PoC polling
-  * Async: IRQ/DMA
-* Integracja w aplikacji
+v Hardware
+v Biblioteka midi-port - note on/off
+v Integracja w aplikacji
 Alpha II
 * Biblioteka midi-port - control change/aftertouch/pitchbend/modulation/etc
 * Integracja w aplikacji
-
-midi-port API:
-* enum MidiMessage
-* register_handler(channel, handler_fn(channel, MidiMessage) -> ())
 
 DONE Prototyp:
 v Kilka stron przełączanych przyciskami

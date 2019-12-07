@@ -35,6 +35,9 @@ git = "https://github.com/stm32-rs/stm32f4xx-hal.git"
 [dependencies.st7920]
 path="../../st7920"
 
+[dependencies.midi-port]
+path="../../midi-port"
+
 # this lets you use `cargo fix`!
 [[bin]]
 name = "midi-elements"

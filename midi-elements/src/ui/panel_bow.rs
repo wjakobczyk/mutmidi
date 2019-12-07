@@ -37,10 +37,9 @@ pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             Point::new(BUTTON_POS_X[0], BUTTON_POS_Y),
             if active == 0 { "*Bow" } else { " Bow" },
             InputDeviceId::Button1 as InputId,
-            Box::new(|value: bool| {
+            Box::new(|_value: bool| {
                 unsafe {
                     (*APP).change_panel(&mut *APP, PanelId::PanelBow);
-                    (*APP).trigger_note(value);
                 }
                 true
             }),
@@ -49,10 +48,9 @@ pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             Point::new(BUTTON_POS_X[1], BUTTON_POS_Y),
             if active == 1 { "*Blw" } else { " Blw" },
             InputDeviceId::Button2 as InputId,
-            Box::new(|value: bool| {
+            Box::new(|_value: bool| {
                 unsafe {
                     (*APP).change_panel(&mut *APP, PanelId::PanelBlow);
-                    (*APP).trigger_note(value);
                 }
                 true
             }),
@@ -61,10 +59,9 @@ pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             Point::new(BUTTON_POS_X[2], BUTTON_POS_Y),
             if active == 2 { "*Str" } else { " Str" },
             InputDeviceId::Button3 as InputId,
-            Box::new(|value: bool| {
+            Box::new(|_value: bool| {
                 unsafe {
                     (*APP).change_panel(&mut *APP, PanelId::PanelStrike);
-                    (*APP).trigger_note(value);
                 }
                 true
             }),
@@ -73,10 +70,9 @@ pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             Point::new(BUTTON_POS_X[3], BUTTON_POS_Y),
             "Res",
             InputDeviceId::Button4 as InputId,
-            Box::new(|value: bool| {
+            Box::new(|_value: bool| {
                 unsafe {
                     (*APP).change_panel(&mut *APP, PanelId::PanelRes);
-                    (*APP).trigger_note(value);
                 }
                 true
             }),
