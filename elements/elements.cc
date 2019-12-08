@@ -145,20 +145,13 @@ float aux[kAudioChunkSize];
 const float kNoiseGateThreshold = 0.0001f;
 float strike_in_level = 0.0f;
 float blow_in_level = 0.0f;
-bool gate = false;
-float note = 50;
-float strength = 1;
+PerformanceState state;
 
 void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
 #ifdef PROFILE_INTERRUPT
   TIC
 #endif  // PROFILE_INTERRUPT
-  PerformanceState s;
   //cv_scaler.Read(part.mutable_patch(), &s);
-  s.gate = gate;
-  s.note = note;
-  s.modulation = 0;
-  s.strength = strength;
   for (size_t i = 0; i < n; ++i) {
     float blow_in_sample = static_cast<float>(input[i].r) / 32768.0f;
     float strike_in_sample = static_cast<float>(input[i].l) / 32768.0f;
@@ -176,7 +169,7 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
           ? (1.0f / kNoiseGateThreshold) * blow_in_level : 1.0f;
     blow_in[i] = gain * blow_in_sample;
   }
-  part.Process(s, blow_in, strike_in, out, aux, n);
+  part.Process(state, blow_in, strike_in, out, aux, n);
   for (size_t i = 0; i < n; ++i) {
     output[i].r = SoftConvert(out[i]);
     output[i].l = SoftConvert(aux[i]);
@@ -191,15 +184,19 @@ Patch *Elements_GetPatch() {
 }
 
 void Elements_SetGate(bool newGate) {
-  gate = newGate;
+  state.gate = newGate;
 }
 
 void Elements_SetNote(float newNote) {
-  note = newNote;
+  state.note = newNote;
 }
 
 void Elements_SetStrength(float newStrength) {
-  strength = newStrength;
+  state.strength = newStrength;
+}
+
+void Elements_SetModulation(float newModulation) {
+  state.modulation = newModulation;
 }
 
 void Elements_Pause(bool pause) {
@@ -249,7 +246,9 @@ void TestElements(bool application) {
 
   Elements_Init(application);
 
-  gate = true;
+  state.gate = true;
+  state.note = 50;
+  state.strength = 1;
     
   GPIO_InitTypeDef gpio;
 

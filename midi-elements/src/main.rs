@@ -333,6 +333,12 @@ impl<'a> App<'a> {
         }
     }
 
+    pub fn set_modulation(&mut self, value: u8) {
+        unsafe {
+            Elements_SetModulation((value as f32) / 127.0);
+        }
+    }
+
     fn handle_midi_irq(&mut self) {
         self.midi_in.poll_uart();
 
@@ -348,6 +354,11 @@ impl<'a> App<'a> {
                     note,
                     velocity,
                 } => self.handle_note(false, note, velocity),
+                MidiMessage::Aftertouch {
+                    channel: _,
+                    note: None,
+                    value,
+                } => self.set_modulation(value),
                 _ => (),
             };
         }
