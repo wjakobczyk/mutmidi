@@ -1,3 +1,22 @@
+// Copyright 2019 Wojciech Jakóbczyk
+//
+// Author: Wojciech Jakóbczyk (jakobczyk.woj@gmail.com)
+//
+// This file is part of MidiElements.
+//
+// MidiElements is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// MidiElements is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with MidiElements.  If not, see <https://www.gnu.org/licenses/>.
+
 #![feature(alloc_error_handler)]
 #![no_std]
 #![no_main]
@@ -104,7 +123,10 @@ struct App<'a> {
 }
 
 impl<'a> App<'a> {
+    //TODO this should be somehow broken down to separate UI from MIDI handling
+
     fn new() -> Self {
+        //TODO split this to smaller functions or if not possible (partial borrows), at least to macros
         let p = stm32::Peripherals::take().unwrap();
         let mut cp = Peripherals::take().unwrap();
         let rcc = p.RCC.constrain();
