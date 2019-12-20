@@ -33,10 +33,10 @@ version = "0.6.0"
 git = "https://github.com/stm32-rs/stm32f4xx-hal.git"
 
 [dependencies.st7920]
-path="../../st7920"
+git = "https://github.com/wjakobczyk/st7920.git"
 
 [dependencies.midi-port]
-path="../../midi-port"
+git = "https://github.com/wjakobczyk/midi-port.git"
 
 # this lets you use `cargo fix`!
 [[bin]]
