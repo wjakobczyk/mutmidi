@@ -1,7 +1,7 @@
-# `MidiElements`
+# `Kawa Synth`
 
-This is a desktop hardware synthesizer based on [Elements](https://mutable-instruments.net/modules/elements/) by [Mutable Instruments](https://mutable-instruments.net/).
-MidiElements uses the same synthesis engine and it wraps it in a standalone form factor, so that it can be used without modular environment.
+Kawa is a desktop hardware synthesizer based on [Elements](https://mutable-instruments.net/modules/elements/) by [Mutable Instruments](https://mutable-instruments.net/).
+Kawa uses the same synthesis engine and it wraps it in a standalone form factor, so that it can be used without modular environment.
 
 It features:
 * MIDI input
@@ -31,7 +31,7 @@ Current prototype is quite simple to build. You will need
 * 4 endless rotary encoders. preferably 32 ticks per full rotation, plus caps;
 * 5 tacticle switches, plus caps
 * MIDI port - ok, this is a bit more complicated, as you need a DIN5 socket, 6N137 IC, 2 resistor and a diode. I have based my prototype on
-the design in Mutable Elements [Shruthi](https://mutable-instruments.net/archive/shruthi/build/),
+the design in Mutable Instruments [Shruthi](https://mutable-instruments.net/archive/shruthi/build/),
 see the [schematics](https://mutable-instruments.net/archive/schematics/Shruthi-Digital-v08.pdf).
 An Arduino/etc shield e.g. from [Sparkfun](https://www.sparkfun.com/products/12898) can be also be used.
 
@@ -39,8 +39,13 @@ The build is simple - just connect all these peripherals to the discovery board.
 There is no schematics for that, just use the [list of connections](https://docs.google.com/spreadsheets/d/1-rX1TQSrHYOQDU-ax9JT7t3ar4qHqWEwtwwP0Y1XQPY/edit?usp=sharing).
 
 My prototype does not look very pro :) but it works just fine:
-* <img src="hardware/prototype-top.jpg" width="500">
-* <img src="hardware/prototype-bottom.jpg" width="500">
+* Top:
+
+<img src="hardware/prototype-top.jpg" width="500">
+
+* Bottom:
+
+<img src="hardware/prototype-bottom.jpg" width="500">
 
 ## Firmware
 
@@ -67,7 +72,7 @@ git submodule init && git submodule update
 ```
 make -f elements\makefile lib
 ```
-* Build the main binary
+* Build the main Kawa binary
 ```
 cd mutmidi
 cargo build
@@ -105,6 +110,11 @@ Long-term wishlist:
 * Upgrade to more powerful hardware (STM32H7)
 * Polyphony, 3-4 voices should be possible on STM32H7
 * Fork the project to use Mutable Instruments Plaits synthesis
+
+## Name
+
+"Kawa" in Japanese is the name of a membrane in Shamisen, a traditional japanese instrument.
+In the same time "kawa" means "coffee" in Polish. :)
 
 ## License
 

@@ -2,20 +2,20 @@
 //
 // Author: Wojciech Jakóbczyk (jakobczyk.woj@gmail.com)
 //
-// This file is part of MidiElements.
+// This file is part of Kawa Synth.
 //
-// MidiElements is free software: you can redistribute it and/or modify
+// Kawa Synth is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// MidiElements is distributed in the hope that it will be useful,
+// Kawa Synth is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with MidiElements.  If not, see <https://www.gnu.org/licenses/>.
+// along with Kawa Synth.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::framework::*;
 use super::*;
@@ -32,29 +32,23 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             Point::new(KNOB_POS_X[0], KNOB_POS_Y),
             "Lvl",
             InputDeviceId::Knob1 as InputId,
-            create_knob_handler(Param::ExcBlowLevel),
+            create_knob_handler(Param::ExcStrikeLevel),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
             "Tmbr",
             InputDeviceId::Knob2 as InputId,
-            create_knob_handler(Param::ExcBlowTimbre),
-        ),
-        Knob::new(
-            Point::new(KNOB_POS_X[2], KNOB_POS_Y),
-            "Cntr",
-            InputDeviceId::Knob3 as InputId,
-            create_knob_handler(Param::ExcEnvShape),
+            create_knob_handler(Param::ExcStrikeTimbre),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[3], KNOB_POS_Y),
-            "Flow",
+            "Mllt",
             InputDeviceId::Knob4 as InputId,
-            create_knob_handler(Param::ExcBlowMeta),
+            create_knob_handler(Param::ExcStrikeMeta),
         ),
     ]
 }
 
 pub fn setup<'a>() -> (Vec<Button<'a>>, Vec<Knob<'a>>) {
-    (super::panel_bow::setup_exciter_buttons(1), setup_knobs())
+    (super::panel_bow::setup_exciter_buttons(2), setup_knobs())
 }

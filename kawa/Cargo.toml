@@ -2,7 +2,7 @@
 authors = ["Wojciech Jakobczyk <jakobczyk.woj@gmail.com>"]
 edition = "2018"
 readme = "README.md"
-name = "midi-elements"
+name = "kawa"
 version = "0.1.0"
 
 [dependencies]
@@ -40,7 +40,7 @@ git = "https://github.com/wjakobczyk/midi-port.git"
 
 # this lets you use `cargo fix`!
 [[bin]]
-name = "midi-elements"
+name = "kawa"
 test = false
 bench = false
 
