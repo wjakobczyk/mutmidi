@@ -21,7 +21,7 @@ use super::framework::*;
 use super::*;
 
 use crate::elements_handlers::*;
-use crate::{InputDeviceId, PanelId, APP};
+use crate::APP;
 
 use alloc::boxed::Box;
 use alloc::vec;

@@ -21,7 +21,7 @@ use super::framework::*;
 use super::*;
 
 use crate::elements_handlers::*;
-use crate::{InputDeviceId, PanelId, APP};
+use crate::APP;
 
 use alloc::boxed::Box;
 use alloc::vec;
@@ -64,6 +64,7 @@ pub fn setup_resonator_buttons<'a>(active: i8) -> Vec<Button<'a>> {
             InputDeviceId::Button1 as InputId,
             Box::new(|_value: bool| {
                 unsafe {
+                    //TODO get rid of this monstrosity
                     (*APP).change_panel(&mut *APP, PanelId::PanelRes);
                 }
                 true

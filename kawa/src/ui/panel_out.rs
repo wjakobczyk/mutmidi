@@ -21,7 +21,6 @@ use super::framework::*;
 use super::*;
 
 use crate::elements_handlers::*;
-use crate::InputDeviceId;
 
 use alloc::vec;
 use alloc::vec::Vec;

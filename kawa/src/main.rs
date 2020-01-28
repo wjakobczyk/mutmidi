@@ -54,8 +54,7 @@ use midi_port::*;
 use embedded_hal::digital::v2::InputPin;
 
 mod ui;
-use ui::framework::*;
-
+use ui::framework::{BinaryColor, Value};
 use ui::*;
 
 mod elements_handlers;
@@ -73,27 +72,6 @@ use alloc::boxed::Box;
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 const HEAP_SIZE: usize = 4 * 1024; // in bytes
 
-#[derive(Clone, Copy)]
-enum InputDeviceId {
-    Button1,
-    Button2,
-    Button3,
-    Button4,
-    Button5,
-    Knob1,
-    Knob2,
-    Knob3,
-    Knob4,
-}
-
-enum PanelId {
-    PanelBow,
-    PanelBlow,
-    PanelStrike,
-    PanelRes,
-    PanelOutput,
-}
-
 type MidiUart = Serial<UART4, (NoTx, gpioc::PC11<Alternate<AF8>>)>;
 
 struct App<'a> {
@@ -105,7 +83,6 @@ struct App<'a> {
         gpiob::PB11<Input<PullUp>>,
     ),
     _trigger_pin: gpioe::PE9<Input<PullUp>>,
-    button_states: [bool; 5],
     display: st7920::ST7920<
         Spi<
             SPI2,
@@ -120,9 +97,8 @@ struct App<'a> {
     >,
     encoders: (TIM2, TIM3, TIM5, TIM1),
     delay: Delay,
-    panels: Option<[Panel<'a>; 5]>,
-    current_panel: Option<&'a mut Panel<'a>>,
     midi_input: MidiInput<MidiUart>,
+    ui: UI<'a>,
 }
 
 impl<'a> App<'a> {
@@ -219,27 +195,21 @@ impl<'a> App<'a> {
                 .set_priority(stm32f4::stm32f407::Interrupt::DMA1_STREAM5, 16);
         }
 
+        let ui = UI::new();
+
         App {
             button_pins,
             _trigger_pin,
-            button_states: [false; 5],
             display,
             midi_input,
             encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
             delay,
-            panels: None,
-            current_panel: None,
+            ui,
         }
     }
 
-    fn setup_ui(&mut self) {
-        self.panels = Some([
-            Panel::new(panel_bow::setup()),
-            Panel::new(panel_blow::setup()),
-            Panel::new(panel_strike::setup()),
-            Panel::new(panel_res::setup()),
-            Panel::new(panel_out::setup()),
-        ])
+    fn setup(&mut self) {
+        self.ui.setup();
     }
 
     fn pause_synth(pause: bool) {
@@ -249,13 +219,7 @@ impl<'a> App<'a> {
     }
 
     pub fn change_panel(&mut self, self2: &'a mut App<'a>, panel: PanelId) {
-        if let Some(panels) = &mut self2.panels {
-            self.current_panel = Some(&mut panels[panel as usize]);
-        }
-
-        if let Some(panel) = &mut self.current_panel {
-            panel.input_reset();
-        }
+        self.ui.change_panel(&mut self2.ui, panel);
 
         self.update_knobs();
         App::pause_synth(true);
@@ -268,75 +232,39 @@ impl<'a> App<'a> {
             .fill(Some(BinaryColor::Off)),
         );
 
-        if let Some(panel) = &mut self.current_panel {
-            panel.render(&mut self.display);
-            self.display
-                .flush(&mut self.delay)
-                .expect("could not flush display");
-        }
+        self.ui.render(&mut self.display);
+        self.display
+            .flush(&mut self.delay)
+            .expect("could not flush display");
 
         App::pause_synth(false);
     }
 
     fn update_knobs(&mut self) {
-        if let Some(panel) = &mut self.current_panel {
-            panel.input_update(
-                InputDeviceId::Knob1 as InputId,
-                Value::Int(self.encoders.0.read_enc() as i32),
-            );
-            panel.input_update(
-                InputDeviceId::Knob2 as InputId,
-                Value::Int(self.encoders.1.read_enc() as i32),
-            );
-            panel.input_update(
-                InputDeviceId::Knob3 as InputId,
-                Value::Int(self.encoders.2.read_enc() as i32),
-            );
-            panel.input_update(
-                InputDeviceId::Knob4 as InputId,
-                Value::Int(self.encoders.3.read_enc() as i32),
-            );
-        };
-    }
-
-    fn update_button(&mut self, id: InputDeviceId, value: bool) {
-        if value && value != self.button_states[id as usize] {
-            if let Some(panel) = &mut self.current_panel {
-                panel.input_update(id as InputId, Value::Bool(value));
-            };
-        }
-        self.button_states[id as usize] = value;
+        self.ui.update_knobs((
+            Value::Int(self.encoders.0.read_enc() as i32),
+            Value::Int(self.encoders.1.read_enc() as i32),
+            Value::Int(self.encoders.2.read_enc() as i32),
+            Value::Int(self.encoders.3.read_enc() as i32),
+        ));
     }
 
     fn update_buttons(&mut self) {
-        self.update_button(
-            InputDeviceId::Button1,
+        self.ui.update_buttons((
             !self.button_pins.0.is_high().unwrap(),
-        );
-        self.update_button(
-            InputDeviceId::Button2,
             !self.button_pins.1.is_high().unwrap(),
-        );
-        self.update_button(
-            InputDeviceId::Button3,
             !self.button_pins.2.is_high().unwrap(),
-        );
-        self.update_button(
-            InputDeviceId::Button4,
             !self.button_pins.3.is_high().unwrap(),
-        );
-        self.update_button(
-            InputDeviceId::Button5,
             !self.button_pins.4.is_high().unwrap(),
-        );
+        ));
     }
 
     fn update(&mut self) {
         self.update_knobs();
         self.update_buttons();
+        let invalidate = self.ui.render(&mut self.display);
 
-        if let Some(panel) = &mut self.current_panel {
-            let invalidate = panel.render(&mut self.display);
+        if let Some(invalidate) = invalidate {
             if invalidate.1.width != 0 && invalidate.1.height != 0 {
                 self.display
                     .flush_region_graphics(invalidate, &mut self.delay)
@@ -357,7 +285,7 @@ fn main() -> ! {
         APP = &mut *app as *mut App;
     }
 
-    app.setup_ui();
+    app.setup();
     unsafe {
         app.change_panel(&mut *APP, PanelId::PanelBow);
     }
