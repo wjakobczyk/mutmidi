@@ -61,6 +61,9 @@ use ui::*;
 mod elements_handlers;
 use elements_handlers::*;
 
+mod midi_input;
+use midi_input::MidiInput;
+
 use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::Rectangle;
 
@@ -115,16 +118,14 @@ struct App<'a> {
         gpioe::PE13<Output<PushPull>>,
         gpioe::PE13<Output<PushPull>>,
     >,
-    midi_in: MidiInPort<MidiUart>,
     encoders: (TIM2, TIM3, TIM5, TIM1),
     delay: Delay,
     panels: Option<[Panel<'a>; 5]>,
     current_panel: Option<&'a mut Panel<'a>>,
+    midi_input: MidiInput<MidiUart>,
 }
 
 impl<'a> App<'a> {
-    //TODO this should be somehow broken down to separate UI from MIDI handling
-
     fn new() -> Self {
         //TODO split this to smaller functions or if not possible (partial borrows), at least to macros
         let p = stm32::Peripherals::take().unwrap();
@@ -210,7 +211,7 @@ impl<'a> App<'a> {
             cp.NVIC
                 .set_priority(stm32f4::stm32f407::Interrupt::UART4, 0);
         }
-        let midi_in = MidiInPort::new(midi_uart);
+        let midi_input = MidiInput::new(MidiInPort::new(midi_uart));
 
         unsafe {
             Elements_Init(false);
@@ -223,7 +224,7 @@ impl<'a> App<'a> {
             _trigger_pin,
             button_states: [false; 5],
             display,
-            midi_in,
+            midi_input,
             encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
             delay,
             panels: None,
@@ -343,48 +344,6 @@ impl<'a> App<'a> {
             }
         }
     }
-
-    pub fn handle_note(&mut self, on: bool, note: NoteNumber, velocity: u8) {
-        unsafe {
-            Elements_SetGate(on);
-            if on {
-                Elements_SetNote(note as f32);
-                Elements_SetStrength((velocity as f32) / 127.0);
-                Elements_SetModulation(0.0);
-            }
-        }
-    }
-
-    pub fn set_modulation(&mut self, value: u8) {
-        unsafe {
-            Elements_SetModulation((value as f32) / 127.0);
-        }
-    }
-
-    fn handle_midi_irq(&mut self) {
-        self.midi_in.poll_uart();
-
-        if let Some(message) = self.midi_in.get_message() {
-            match message {
-                MidiMessage::NoteOn {
-                    channel: _,
-                    note,
-                    velocity,
-                } => self.handle_note(true, note, velocity),
-                MidiMessage::NoteOff {
-                    channel: _,
-                    note,
-                    velocity,
-                } => self.handle_note(false, note, velocity),
-                MidiMessage::Aftertouch {
-                    channel: _,
-                    note: None,
-                    value,
-                } => self.set_modulation(value),
-                _ => (),
-            };
-        }
-    }
 }
 
 static mut APP: *mut App = 0 as *mut App;
@@ -411,7 +370,7 @@ fn main() -> ! {
 #[interrupt]
 fn UART4() {
     unsafe {
-        (*APP).handle_midi_irq();
+        (*APP).midi_input.handle_midi_irq();
     }
 }
 
