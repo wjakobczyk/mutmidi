@@ -8,6 +8,7 @@ where
 {
     port: MidiInPort<MidiUart>,
     notes_stack: Vec<Note>,
+    legato: bool,
 }
 
 struct Note {
@@ -25,6 +26,7 @@ where
         MidiInput {
             port,
             notes_stack: Vec::with_capacity(NOTE_STACK_SIZE),
+            legato: false,
         }
     }
 
@@ -54,9 +56,6 @@ where
     }
 
     fn handle_note(&mut self, on: bool, note: NoteNumber, velocity: u8) {
-        //TODO this is implementation of legato, need a solution for non-legato
-        //how to retrigger gate in Elements?
-
         if on {
             if self.notes_stack.len() == NOTE_STACK_SIZE {
                 self.notes_stack.remove(0);
@@ -71,6 +70,9 @@ where
 
             unsafe {
                 Elements_SetGate(true);
+                if !self.legato {
+                    Elements_RetriggerGate();
+                }
                 Elements_SetNote(note.note as f32);
                 Elements_SetStrength((note.velocity as f32) / 127.0);
             }

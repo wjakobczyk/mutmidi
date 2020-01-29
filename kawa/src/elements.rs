@@ -47,6 +47,7 @@ extern "C" {
     pub fn Elements_Init(application: bool);
     pub fn Elements_GetPatch() -> *mut Patch;
     pub fn Elements_SetGate(newGate: bool);
+    pub fn Elements_RetriggerGate();
     pub fn Elements_SetNote(newNote: f32);
     pub fn Elements_SetStrength(newStrength: f32);
     pub fn Elements_SetModulation(newModulation: f32);

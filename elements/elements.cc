@@ -1,17 +1,17 @@
 // Copyright 2014 Emilie Gillet.
-// 
+//
 // Author: Emilie Gillet (emilie.o.gillet@gmail.com)
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 
 #include <inttypes.h>
@@ -146,12 +146,20 @@ const float kNoiseGateThreshold = 0.0001f;
 float strike_in_level = 0.0f;
 float blow_in_level = 0.0f;
 PerformanceState state;
+int retrigger_gate = 0;
 
 void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
 #ifdef PROFILE_INTERRUPT
   TIC
 #endif  // PROFILE_INTERRUPT
-  //cv_scaler.Read(part.mutable_patch(), &s);
+  if (retrigger_gate) {
+    state.gate = false;
+    retrigger_gate--;
+    if (!retrigger_gate) {
+      state.gate = true;
+    }
+  }
+
   for (size_t i = 0; i < n; ++i) {
     float blow_in_sample = static_cast<float>(input[i].r) / 32768.0f;
     float strike_in_sample = static_cast<float>(input[i].l) / 32768.0f;
@@ -159,13 +167,13 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
     float error, gain;
     error = strike_in_sample * strike_in_sample - strike_in_level;
     strike_in_level += error * (error > 0.0f ? 0.1f : 0.0001f);
-    gain = strike_in_level <= kNoiseGateThreshold 
+    gain = strike_in_level <= kNoiseGateThreshold
           ? (1.0f / kNoiseGateThreshold) * strike_in_level : 1.0f;
     strike_in[i] = gain * strike_in_sample;
-    
+
     error = blow_in_sample * blow_in_sample - blow_in_level;
     blow_in_level += error * (error > 0.0f ? 0.1f : 0.0001f);
-    gain = blow_in_level <= kNoiseGateThreshold 
+    gain = blow_in_level <= kNoiseGateThreshold
           ? (1.0f / kNoiseGateThreshold) * blow_in_level : 1.0f;
     blow_in[i] = gain * blow_in_sample;
   }
@@ -174,6 +182,7 @@ void FillBuffer(Codec::Frame* input, Codec::Frame* output, size_t n) {
     output[i].r = SoftConvert(out[i]);
     output[i].l = SoftConvert(aux[i]);
   }
+
 #ifdef PROFILE_INTERRUPT
   TOC
 #endif  // PROFILE_INTERRUPT
@@ -185,6 +194,10 @@ Patch *Elements_GetPatch() {
 
 void Elements_SetGate(bool newGate) {
   state.gate = newGate;
+}
+
+void Elements_RetriggerGate() {
+  retrigger_gate = 2;
 }
 
 void Elements_SetNote(float newNote) {
@@ -205,7 +218,7 @@ void Elements_Pause(bool pause) {
 
 void Elements_Init(bool application) {
   System sys;
-  
+
   sys.Init(application);
 
   // Init and seed the random parameters and generators with the serial number.
@@ -214,7 +227,7 @@ void Elements_Init(bool application) {
 
   cv_scaler.Init();
   ui.Init(&part, &cv_scaler);
-  
+
   if (!codec.Init(32000, CODEC_PROTOCOL_PHILIPS, CODEC_FORMAT_16_BIT)) {
     //ui.Panic();
     while(1);
@@ -249,7 +262,7 @@ void TestElements(bool application) {
   state.gate = true;
   state.note = 50;
   state.strength = 1;
-    
+
   GPIO_InitTypeDef gpio;
 
   RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE); // >TODO check
