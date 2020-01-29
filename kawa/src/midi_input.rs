@@ -1,4 +1,5 @@
 use crate::elements_handlers::*;
+use alloc::vec::Vec;
 use midi_port::*;
 
 pub struct MidiInput<MidiUart>
@@ -6,14 +7,25 @@ where
     MidiUart: embedded_hal::serial::Read<u8>,
 {
     port: MidiInPort<MidiUart>,
+    notes_stack: Vec<Note>,
 }
+
+struct Note {
+    note: NoteNumber,
+    velocity: u8,
+}
+
+const NOTE_STACK_SIZE: usize = 5;
 
 impl<MidiUart> MidiInput<MidiUart>
 where
     MidiUart: embedded_hal::serial::Read<u8>,
 {
     pub fn new(port: MidiInPort<MidiUart>) -> Self {
-        MidiInput { port }
+        MidiInput {
+            port,
+            notes_stack: Vec::with_capacity(NOTE_STACK_SIZE),
+        }
     }
 
     pub fn handle_midi_irq(&mut self) {
@@ -42,12 +54,29 @@ where
     }
 
     fn handle_note(&mut self, on: bool, note: NoteNumber, velocity: u8) {
-        unsafe {
-            Elements_SetGate(on);
-            if on {
-                Elements_SetNote(note as f32);
-                Elements_SetStrength((velocity as f32) / 127.0);
-                Elements_SetModulation(0.0);
+        //TODO this is implementation of legato, need a solution for non-legato
+        //how to retrigger gate in Elements?
+
+        if on {
+            if self.notes_stack.len() == NOTE_STACK_SIZE {
+                self.notes_stack.remove(0);
+            }
+            self.notes_stack.push(Note { note, velocity });
+        } else {
+            self.notes_stack.drain_filter(|n| n.note == note);
+        }
+
+        if self.notes_stack.len() > 0 {
+            let note = &self.notes_stack[self.notes_stack.len() - 1];
+
+            unsafe {
+                Elements_SetGate(true);
+                Elements_SetNote(note.note as f32);
+                Elements_SetStrength((note.velocity as f32) / 127.0);
+            }
+        } else {
+            unsafe {
+                Elements_SetGate(false);
             }
         }
     }

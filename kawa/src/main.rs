@@ -20,6 +20,7 @@
 #![feature(alloc_error_handler)]
 #![no_std]
 #![no_main]
+#![feature(drain_filter)]
 
 extern crate alloc;
 extern crate panic_halt;
