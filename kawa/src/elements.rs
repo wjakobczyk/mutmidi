@@ -18,8 +18,8 @@
 // along with Kawa Synth.  If not, see <https://www.gnu.org/licenses/>.
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct Patch {
+#[derive(Debug, Copy, Clone, Default)]
+pub struct ElementsParams {
     pub exciter_envelope_shape: f32,
     pub exciter_bow_level: f32,
     pub exciter_bow_timbre: f32,
@@ -45,7 +45,7 @@ pub struct Patch {
 #[link(name = "elements")]
 extern "C" {
     pub fn Elements_Init(application: bool);
-    pub fn Elements_GetPatch() -> *mut Patch;
+    pub fn Elements_GetPatch() -> *mut ElementsParams;
     pub fn Elements_SetGate(newGate: bool);
     pub fn Elements_RetriggerGate();
     pub fn Elements_SetNote(newNote: f32);

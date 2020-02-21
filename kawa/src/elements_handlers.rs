@@ -17,9 +17,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Kawa Synth.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::APP;
 use alloc::boxed::Box;
-
-include!("elements.rs");
 
 pub enum Param {
     ExcEnvShape,
@@ -57,10 +56,14 @@ pub fn clamp(value: f32, min: f32, max: f32) -> f32 {
 macro_rules! param_bind {
     ($PARAM:ident) => {
         Box::new(|delta: i8| unsafe {
-            let patch = &mut *Elements_GetPatch();
-            patch.$PARAM += (delta as f32) / KNOB_SCALER;
-            patch.$PARAM = clamp(patch.$PARAM, PARAM_MIN, PARAM_MAX);
-            (patch.$PARAM * KNOB_SCALER) as u8
+            cortex_m::interrupt::free(|cs| {
+                let mut patch = (*APP).synth.shared_state.patch.borrow(cs).borrow_mut();
+
+                patch.elements_params.$PARAM += (delta as f32) / KNOB_SCALER;
+                patch.elements_params.$PARAM =
+                    clamp(patch.elements_params.$PARAM, PARAM_MIN, PARAM_MAX);
+                (patch.elements_params.$PARAM * KNOB_SCALER) as u8
+            })
         })
     };
 }

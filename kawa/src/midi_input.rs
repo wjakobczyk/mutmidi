@@ -1,4 +1,5 @@
-use crate::elements_handlers::*;
+use crate::synth::VoiceEventsQueue;
+use crate::voice::VoiceEvent;
 use alloc::vec::Vec;
 use midi_port::*;
 
@@ -30,32 +31,36 @@ where
         }
     }
 
-    pub fn handle_midi_irq(&mut self) {
+    pub fn handle_midi_irq(&mut self, events: &mut VoiceEventsQueue) {
         self.port.poll_uart();
 
         if let Some(message) = self.port.get_message() {
-            match message {
+            let event = match message {
                 MidiMessage::NoteOn {
                     channel: _,
                     note,
                     velocity,
-                } => self.handle_note(true, note, velocity),
+                } => Some(self.handle_note(true, note, velocity)),
                 MidiMessage::NoteOff {
                     channel: _,
                     note,
                     velocity,
-                } => self.handle_note(false, note, velocity),
+                } => Some(self.handle_note(false, note, velocity)),
                 MidiMessage::Aftertouch {
                     channel: _,
                     note: None,
                     value,
-                } => self.set_modulation(value),
-                _ => (),
+                } => Some(self.handle_modulation(value)),
+                _ => None,
             };
+
+            if let Some(event) = event {
+                events.enque(event);
+            }
         }
     }
 
-    fn handle_note(&mut self, on: bool, note: NoteNumber, velocity: u8) {
+    fn handle_note(&mut self, on: bool, note: NoteNumber, velocity: u8) -> VoiceEvent {
         if on {
             if self.notes_stack.len() == NOTE_STACK_SIZE {
                 self.notes_stack.remove(0);
@@ -68,24 +73,17 @@ where
         if self.notes_stack.len() > 0 {
             let note = &self.notes_stack[self.notes_stack.len() - 1];
 
-            unsafe {
-                Elements_SetGate(true);
-                if !self.legato {
-                    Elements_RetriggerGate();
-                }
-                Elements_SetNote(note.note as f32);
-                Elements_SetStrength((note.velocity as f32) / 127.0);
-            }
+            return VoiceEvent::NoteOn {
+                retrigger: !self.legato,
+                note: note.note as f32,
+                strength: (note.velocity as f32) / 127.0,
+            };
         } else {
-            unsafe {
-                Elements_SetGate(false);
-            }
+            return VoiceEvent::NoteOff;
         }
     }
 
-    fn set_modulation(&mut self, value: u8) {
-        unsafe {
-            Elements_SetModulation((value as f32) / 127.0);
-        }
+    fn handle_modulation(&mut self, value: u8) -> VoiceEvent {
+        VoiceEvent::ChangeModulation((value as f32) / 127.0)
     }
 }

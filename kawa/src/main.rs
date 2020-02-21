@@ -27,6 +27,7 @@ extern crate panic_halt;
 
 use core::alloc::Layout;
 
+use alloc::vec::Vec;
 use alloc_cortex_m::CortexMHeap;
 use cortex_m::asm;
 
@@ -59,15 +60,23 @@ use ui::framework::{BinaryColor, Value};
 use ui::*;
 
 mod elements_handlers;
-use elements_handlers::*;
 
 mod midi_input;
 use midi_input::MidiInput;
+
+mod patch;
+mod util;
+mod voice;
+
+mod synth;
+use synth::*;
 
 use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::Rectangle;
 
 use alloc::boxed::Box;
+
+include!("elements.rs");
 
 #[global_allocator]
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
@@ -100,6 +109,7 @@ struct App<'a> {
     delay: Delay,
     midi_input: MidiInput<MidiUart>,
     ui: UI<'a>,
+    synth: Synth,
 }
 
 impl<'a> App<'a> {
@@ -198,6 +208,8 @@ impl<'a> App<'a> {
 
         let ui = UI::new();
 
+        let synth = Synth::new();
+
         App {
             button_pins,
             _trigger_pin,
@@ -206,6 +218,7 @@ impl<'a> App<'a> {
             encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
             delay,
             ui,
+            synth,
         }
     }
 
@@ -275,7 +288,7 @@ impl<'a> App<'a> {
     }
 }
 
-static mut APP: *mut App = 0 as *mut App;
+static mut APP: *mut App = core::ptr::null_mut();
 
 #[entry]
 fn main() -> ! {
@@ -299,15 +312,44 @@ fn main() -> ! {
 #[interrupt]
 fn UART4() {
     unsafe {
-        (*APP).midi_input.handle_midi_irq();
+        if !APP.is_null() {
+            (*APP)
+                .midi_input
+                .handle_midi_irq(&mut (*APP).synth.shared_state.voice_events);
+        }
     }
 }
 
 #[interrupt]
 fn DMA1_STREAM5() {
+    //using APP only to get voice and voice_events references which are behind a Mutex
+    //and we're in an interrupt, so voice is not being accessed (critical section blocks irqs)
+    unsafe {
+        if !APP.is_null() {
+            let mut events = Vec::new();
+
+            (*APP)
+                .synth
+                .shared_state
+                .voice_events
+                .deque_all(&mut events);
+
+            cortex_m::interrupt::free(|cs| {
+                let patch = &(*APP).synth.shared_state.patch.borrow(cs).borrow();
+
+                (*APP)
+                    .synth
+                    .shared_state
+                    .voice
+                    .borrow(cs)
+                    .update(&events, patch)
+            });
+        }
+    }
+
     unsafe {
         Elements_DMA1_Stream5_IRQHandler();
-    }
+    };
 }
 
 #[alloc_error_handler]
