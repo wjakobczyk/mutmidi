@@ -37,6 +37,9 @@ git = "https://github.com/wjakobczyk/st7920.git"
 [dependencies.midi-port]
 git = "https://github.com/wjakobczyk/midi-port.git"
 
+[dependencies.stm32-flash]
+path = "../../stm32-flash"
+
 # this lets you use `cargo fix`!
 [[bin]]
 name = "kawa"

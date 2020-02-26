@@ -53,6 +53,8 @@ use st7920::ST7920;
 
 use midi_port::*;
 
+use stm32_flash::Flash;
+
 use embedded_hal::digital::v2::InputPin;
 
 mod ui;
@@ -82,6 +84,8 @@ include!("elements.rs");
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 const HEAP_SIZE: usize = 4 * 1024; // in bytes
 
+const FLASH_SECTOR_STORE: u8 = 11;
+
 type MidiUart = Serial<UART4, (NoTx, gpioc::PC11<Alternate<AF8>>)>;
 
 struct App<'a> {
@@ -108,6 +112,7 @@ struct App<'a> {
     encoders: (TIM2, TIM3, TIM5, TIM1),
     delay: Delay,
     midi_input: MidiInput<MidiUart>,
+    flash: Flash,
     ui: UI<'a>,
     synth: Synth,
 }
@@ -208,7 +213,11 @@ impl<'a> App<'a> {
 
         let ui = UI::new();
 
-        let synth = Synth::new();
+        let flash = Flash::new(p.FLASH, FLASH_SECTOR_STORE);
+
+        let mut synth = Synth::new();
+
+        synth.load_patch(&flash, 0);
 
         App {
             button_pins,
@@ -217,6 +226,7 @@ impl<'a> App<'a> {
             midi_input,
             encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
             delay,
+            flash,
             ui,
             synth,
         }
@@ -230,6 +240,11 @@ impl<'a> App<'a> {
         unsafe {
             Elements_Pause(pause);
         }
+    }
+
+    fn save(&mut self) {
+        self.flash.erase().unwrap();
+        self.synth.save_patch(&mut self.flash, 0);
     }
 
     pub fn change_panel(&mut self, self2: &'a mut App<'a>, panel: PanelId) {
@@ -250,6 +265,8 @@ impl<'a> App<'a> {
         self.display
             .flush(&mut self.delay)
             .expect("could not flush display");
+
+        self.save();
 
         App::pause_synth(false);
     }

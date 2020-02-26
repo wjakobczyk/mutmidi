@@ -1,6 +1,6 @@
 use crate::ElementsParams;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct Patch {
     pub elements_params: ElementsParams,
 }

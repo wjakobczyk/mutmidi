@@ -3,6 +3,7 @@ use crate::util::QueueThreadSafe;
 use crate::voice::*;
 use core::cell::RefCell;
 use cortex_m::interrupt::Mutex;
+use stm32_flash::Flash;
 
 pub type VoiceEventsQueue = QueueThreadSafe<VoiceEvent>;
 
@@ -33,5 +34,22 @@ impl Synth {
                 patch: Mutex::new(RefCell::new(Patch::new())),
             },
         }
+    }
+
+    pub fn save_patch(&self, flash: &mut Flash, offset: usize) {
+        let mut patch_copy = None;
+
+        cortex_m::interrupt::free(|cs| {
+            patch_copy = Some(self.shared_state.patch.borrow(cs).borrow().clone());
+        });
+
+        flash.write(offset, &patch_copy.unwrap()).unwrap();
+    }
+
+    pub fn load_patch(&mut self, flash: &Flash, offset: usize) {
+        cortex_m::interrupt::free(|cs| {
+            let mut patch = self.shared_state.patch.borrow(cs).borrow_mut();
+            *patch = flash.read(offset);
+        });
     }
 }
