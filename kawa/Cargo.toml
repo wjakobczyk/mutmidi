@@ -30,7 +30,6 @@ version = "0.8.0"
 default-features = false
 features = ["rt", "stm32f407"]
 version = "0.6.0"
-git = "https://github.com/stm32-rs/stm32f4xx-hal.git"
 
 [dependencies.st7920]
 git = "https://github.com/wjakobczyk/st7920.git"
