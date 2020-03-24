@@ -96,7 +96,8 @@ struct App<'a> {
         gpiod::PD11<Input<PullUp>>,
         gpiob::PB11<Input<PullUp>>,
     ),
-    _trigger_pin: gpioe::PE9<Input<PullUp>>,
+    trigger_pin: gpioe::PE9<Input<PullUp>>,
+    trigger_state: bool,
     display: st7920::ST7920<
         Spi<
             SPI2,
@@ -173,7 +174,7 @@ impl<'a> App<'a> {
             gpiod.pd11.into_pull_up_input(),
             gpiob.pb11.into_pull_up_input(),
         );
-        let _trigger_pin = gpioe.pe9.into_pull_up_input();
+        let trigger_pin = gpioe.pe9.into_pull_up_input();
 
         let mut display = ST7920::new(
             spi,
@@ -217,11 +218,14 @@ impl<'a> App<'a> {
 
         let mut synth = Synth::new();
 
-        synth.load_patch(&flash, 0);
+        if button_pins.0.is_high().unwrap() {
+            synth.load_patch(&flash, 0);
+        }
 
         App {
             button_pins,
-            _trigger_pin,
+            trigger_pin,
+            trigger_state: false,
             display,
             midi_input,
             encoders: (p.TIM2, p.TIM3, p.TIM5, p.TIM1),
@@ -301,6 +305,24 @@ impl<'a> App<'a> {
                     .flush_region_graphics(invalidate, &mut self.delay)
                     .expect("could not flush display");
             }
+        }
+
+        if !self.trigger_state && self.trigger_pin.is_low().unwrap() {
+            self.synth
+                .shared_state
+                .voice_events
+                .enque(voice::VoiceEvent::NoteOn {
+                    retrigger: false,
+                    note: 40.0,
+                    strength: 1.0,
+                });
+            self.trigger_state = true;
+        } else if self.trigger_state && self.trigger_pin.is_high().unwrap() {
+            self.synth
+                .shared_state
+                .voice_events
+                .enque(voice::VoiceEvent::NoteOff);
+            self.trigger_state = false;
         }
     }
 }
