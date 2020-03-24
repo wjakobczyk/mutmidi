@@ -163,7 +163,7 @@ impl<'a> App<'a> {
                 polarity: Polarity::IdleLow,
                 phase: Phase::CaptureOnFirstTransition,
             },
-            stm32f4xx_hal::time::KiloHertz(1200).into(),
+            stm32f4xx_hal::time::KiloHertz(400).into(),
             clocks,
         );
         let button_pins = (
