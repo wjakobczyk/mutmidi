@@ -94,9 +94,14 @@ pub fn setup_resonator_buttons<'a>(active: i8) -> Vec<Button<'a>> {
         ),
         Button::new(
             Point::new(BUTTON_POS_X[4], BUTTON_POS_Y),
-            "Sys",
+            "Ptch",
             InputDeviceId::Button5 as InputId,
-            Box::new(|_value: bool| true),
+            Box::new(|_value: bool| {
+                unsafe {
+                    (*APP).change_panel(&mut *APP, PanelId::PanelPatch);
+                }
+                true
+            }),
         ),
     ]
 }

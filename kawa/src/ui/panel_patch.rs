@@ -20,67 +20,46 @@
 use super::framework::*;
 use super::*;
 
-use crate::elements_handlers::*;
-use crate::APP;
-
-use alloc::boxed::Box;
 use alloc::vec;
 use alloc::vec::Vec;
 
 fn setup_knobs<'a>() -> Vec<Knob<'a>> {
-    vec![
-        Knob::new(
-            Point::new(KNOB_POS_X[0], KNOB_POS_Y),
-            "Lvl",
-            InputDeviceId::Knob1 as InputId,
-            create_knob_handler(Param::ExcBowLevel),
-        ),
-        Knob::new(
-            Point::new(KNOB_POS_X[1], KNOB_POS_Y),
-            "Tmbr",
-            InputDeviceId::Knob2 as InputId,
-            create_knob_handler(Param::ExcBowTimbre),
-        ),
-        Knob::new(
-            Point::new(KNOB_POS_X[2], KNOB_POS_Y),
-            "Cntr",
-            InputDeviceId::Knob3 as InputId,
-            create_knob_handler(Param::ExcEnvShape),
-        ),
-    ]
+    vec![Knob::new(
+        Point::new(KNOB_POS_X[0], KNOB_POS_Y),
+        "Tst",
+        InputDeviceId::Knob3 as InputId,
+        Box::new(|delta: i8| 0),
+    )]
 }
 
-pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
+pub fn setup_buttons<'a>(active: i8, synth: Rc<RefCell<Synth>>) -> Vec<Button<'a>> {
+    let synth_temp = synth.clone();
     vec![
         Button::new(
             Point::new(BUTTON_POS_X[0], BUTTON_POS_Y),
-            if active == 0 { "*Bow" } else { " Bow" },
+            if active == 0 { "*Ld" } else { " Ld" },
             InputDeviceId::Button1 as InputId,
-            Box::new(|_value: bool| {
-                unsafe {
-                    (*APP).change_panel(&mut *APP, PanelId::PanelBow);
-                }
+            Box::new(move |_value: bool| {
+                synth.borrow_mut().test();
                 true
             }),
         ),
         Button::new(
             Point::new(BUTTON_POS_X[1], BUTTON_POS_Y),
-            if active == 1 { "*Blw" } else { " Blw" },
+            if active == 0 { "*Sav" } else { " Sav" },
             InputDeviceId::Button2 as InputId,
-            Box::new(|_value: bool| {
-                unsafe {
-                    (*APP).change_panel(&mut *APP, PanelId::PanelBlow);
-                }
+            Box::new(move |_value: bool| {
+                synth_temp.borrow_mut().test();
                 true
             }),
         ),
         Button::new(
             Point::new(BUTTON_POS_X[2], BUTTON_POS_Y),
-            if active == 2 { "*Str" } else { " Str" },
+            "Exc",
             InputDeviceId::Button3 as InputId,
             Box::new(|_value: bool| {
                 unsafe {
-                    (*APP).change_panel(&mut *APP, PanelId::PanelStrike);
+                    (*APP).change_panel(&mut *APP, PanelId::PanelBow);
                 }
                 true
             }),
@@ -98,18 +77,13 @@ pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
         ),
         Button::new(
             Point::new(BUTTON_POS_X[4], BUTTON_POS_Y),
-            "Ptch",
+            "Cfg",
             InputDeviceId::Button5 as InputId,
-            Box::new(|_value: bool| {
-                unsafe {
-                    (*APP).change_panel(&mut *APP, PanelId::PanelPatch);
-                }
-                true
-            }),
+            Box::new(|_value: bool| true),
         ),
     ]
 }
 
-pub fn setup<'a>() -> (Vec<Button<'a>>, Vec<Knob<'a>>) {
-    (setup_exciter_buttons(0), setup_knobs())
+pub fn setup<'a>(synth: Rc<RefCell<Synth>>) -> (Vec<Button<'a>>, Vec<Knob<'a>>) {
+    (setup_buttons(1, synth.clone()), setup_knobs())
 }

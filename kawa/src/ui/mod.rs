@@ -21,11 +21,16 @@ pub mod framework;
 pub mod panel_blow;
 pub mod panel_bow;
 pub mod panel_out;
+pub mod panel_patch;
 pub mod panel_res;
 pub mod panel_strike;
 
 use super::framework::*;
 use super::*;
+
+use alloc::rc::Rc;
+use core::cell::RefCell;
+use synth::Synth;
 
 pub const KNOB_POS_X: [i32; 4] = [0, 32, 64, 96];
 pub const KNOB_POS_Y: i32 = 40;
@@ -51,11 +56,12 @@ pub enum PanelId {
     PanelStrike,
     PanelRes,
     PanelOutput,
+    PanelPatch,
 }
 
 pub struct UI<'a> {
     button_states: [bool; 5],
-    panels: Option<[Panel<'a>; 5]>,
+    panels: Option<[Panel<'a>; 6]>,
     current_panel: Option<&'a mut Panel<'a>>,
 }
 
@@ -68,13 +74,14 @@ impl<'a> UI<'a> {
         }
     }
 
-    pub fn setup(&mut self) {
+    pub fn setup(&mut self, synth: Rc<RefCell<Synth>>) {
         self.panels = Some([
             Panel::new(panel_bow::setup()),
             Panel::new(panel_blow::setup()),
             Panel::new(panel_strike::setup()),
             Panel::new(panel_res::setup()),
             Panel::new(panel_out::setup()),
+            Panel::new(panel_patch::setup(synth.clone())),
         ])
     }
 
