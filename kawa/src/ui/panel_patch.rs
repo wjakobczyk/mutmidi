@@ -20,6 +20,8 @@
 use super::framework::*;
 use super::*;
 
+use synth::SynthRef;
+
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -32,7 +34,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
     )]
 }
 
-pub fn setup_buttons<'a>(active: i8, synth: Rc<RefCell<Synth>>) -> Vec<Button<'a>> {
+pub fn setup_buttons<'a>(active: i8, synth: SynthRef) -> Vec<Button<'a>> {
     let synth_temp = synth.clone();
     vec![
         Button::new(
@@ -40,7 +42,9 @@ pub fn setup_buttons<'a>(active: i8, synth: Rc<RefCell<Synth>>) -> Vec<Button<'a
             if active == 0 { "*Ld" } else { " Ld" },
             InputDeviceId::Button1 as InputId,
             Box::new(move |_value: bool| {
-                synth.borrow_mut().test();
+                cortex_m::interrupt::free(|cs| {
+                    synth.borrow(cs).borrow_mut().test();
+                });
                 true
             }),
         ),
@@ -49,7 +53,9 @@ pub fn setup_buttons<'a>(active: i8, synth: Rc<RefCell<Synth>>) -> Vec<Button<'a
             if active == 0 { "*Sav" } else { " Sav" },
             InputDeviceId::Button2 as InputId,
             Box::new(move |_value: bool| {
-                synth_temp.borrow_mut().test();
+                cortex_m::interrupt::free(|cs| {
+                    synth_temp.borrow(cs).borrow_mut().test();
+                });
                 true
             }),
         ),
@@ -84,6 +90,6 @@ pub fn setup_buttons<'a>(active: i8, synth: Rc<RefCell<Synth>>) -> Vec<Button<'a
     ]
 }
 
-pub fn setup<'a>(synth: Rc<RefCell<Synth>>) -> (Vec<Button<'a>>, Vec<Knob<'a>>) {
+pub fn setup<'a>(synth: SynthRef) -> (Vec<Button<'a>>, Vec<Knob<'a>>) {
     (setup_buttons(1, synth.clone()), setup_knobs())
 }

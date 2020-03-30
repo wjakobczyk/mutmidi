@@ -28,9 +28,7 @@ pub mod panel_strike;
 use super::framework::*;
 use super::*;
 
-use alloc::rc::Rc;
-use core::cell::RefCell;
-use synth::Synth;
+use synth::SynthRef;
 
 pub const KNOB_POS_X: [i32; 4] = [0, 32, 64, 96];
 pub const KNOB_POS_Y: i32 = 40;
@@ -74,7 +72,7 @@ impl<'a> UI<'a> {
         }
     }
 
-    pub fn setup(&mut self, synth: Rc<RefCell<Synth>>) {
+    pub fn setup(&mut self, synth: SynthRef) {
         self.panels = Some([
             Panel::new(panel_bow::setup()),
             Panel::new(panel_blow::setup()),

@@ -57,8 +57,8 @@ macro_rules! param_bind {
     ($PARAM:ident) => {
         Box::new(|delta: i8| unsafe {
             cortex_m::interrupt::free(|cs| {
-                let synth = (*APP).synth.borrow_mut();
-                let mut patch = synth.shared_state.patch.borrow(cs).borrow_mut();
+                let synth = (*APP).synth.borrow(cs).borrow_mut();
+                let mut patch = synth.patch.borrow_mut();
 
                 patch.elements_params.$PARAM += (delta as f32) / KNOB_SCALER;
                 patch.elements_params.$PARAM =

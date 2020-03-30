@@ -31,6 +31,7 @@ use core::cell::RefCell;
 use alloc::vec::Vec;
 use alloc_cortex_m::CortexMHeap;
 use cortex_m::asm;
+use cortex_m::interrupt::Mutex;
 
 use cortex_m::peripheral::Peripherals;
 use cortex_m_rt::entry;
@@ -81,7 +82,7 @@ use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::Rectangle;
 
 use alloc::boxed::Box;
-use alloc::rc::Rc;
+use alloc::sync::Arc;
 
 include!("elements.rs");
 
@@ -119,7 +120,7 @@ struct App<'a> {
     delay: Delay,
     midi_input: MidiInput<MidiUart>,
     ui: UI<'a>,
-    synth: Rc<RefCell<Synth>>,
+    synth: SynthRef,
     storage: Storage,
 }
 
@@ -221,12 +222,17 @@ impl<'a> App<'a> {
 
         let flash = Flash::new(p.FLASH, FLASH_SECTOR_STORE);
 
-        let synth = Rc::new(RefCell::new(Synth::new()));
+        let synth = Arc::new(Mutex::new(RefCell::new(Synth::new())));
 
         let storage = Storage::new(flash);
 
         if button_pins.0.is_high().unwrap() {
-            synth.borrow_mut().set_patch(storage.get_patch(0));
+            cortex_m::interrupt::free(|cs| {
+                synth
+                    .borrow(cs)
+                    .borrow_mut()
+                    .set_patch(storage.get_patch(0));
+            });
         }
 
         App {
@@ -254,7 +260,10 @@ impl<'a> App<'a> {
     }
 
     fn save(&mut self) {
-        self.storage.save_patch(0, &self.synth.borrow().get_patch());
+        cortex_m::interrupt::free(|cs| {
+            self.storage
+                .save_patch(0, &self.synth.borrow(cs).borrow().get_patch());
+        });
     }
 
     pub fn change_panel(&mut self, self2: &'a mut App<'a>, panel: PanelId) {
@@ -313,25 +322,27 @@ impl<'a> App<'a> {
             }
         }
 
-        if !self.trigger_state && self.trigger_pin.is_low().unwrap() {
-            self.synth
-                .borrow_mut()
-                .shared_state
-                .voice_events
-                .enque(voice::VoiceEvent::NoteOn {
-                    retrigger: false,
-                    note: 40.0,
-                    strength: 1.0,
-                });
-            self.trigger_state = true;
-        } else if self.trigger_state && self.trigger_pin.is_high().unwrap() {
-            self.synth
-                .borrow_mut()
-                .shared_state
-                .voice_events
-                .enque(voice::VoiceEvent::NoteOff);
-            self.trigger_state = false;
-        }
+        cortex_m::interrupt::free(|cs| {
+            if !self.trigger_state && self.trigger_pin.is_low().unwrap() {
+                self.synth
+                    .borrow(cs)
+                    .borrow_mut()
+                    .voice_events
+                    .enque(voice::VoiceEvent::NoteOn {
+                        retrigger: false,
+                        note: 40.0,
+                        strength: 1.0,
+                    });
+                self.trigger_state = true;
+            } else if self.trigger_state && self.trigger_pin.is_high().unwrap() {
+                self.synth
+                    .borrow(cs)
+                    .borrow_mut()
+                    .voice_events
+                    .enque(voice::VoiceEvent::NoteOff);
+                self.trigger_state = false;
+            }
+        });
     }
 }
 
@@ -360,28 +371,30 @@ fn main() -> ! {
 fn UART4() {
     unsafe {
         if !APP.is_null() {
-            (*APP)
-                .midi_input
-                .handle_midi_irq(&mut (*APP).synth.borrow_mut().shared_state.voice_events);
+            cortex_m::interrupt::free(|cs| {
+                (*APP)
+                    .midi_input
+                    .handle_midi_irq(&mut (*APP).synth.borrow(cs).borrow_mut().voice_events);
+            });
         }
     }
 }
 
 #[interrupt]
 fn DMA1_STREAM5() {
-    //using APP only to get voice and voice_events references which are behind a Mutex
-    //and we're in an interrupt, so voice is not being accessed (critical section blocks irqs)
+    //using APP only to get synth reference which is behind a mutex
     unsafe {
         if !APP.is_null() {
-            let mut events = Vec::new();
-            let synth = (*APP).synth.borrow_mut();
-
-            synth.shared_state.voice_events.deque_all(&mut events);
-
+            let synth = (*APP).synth.clone();
             cortex_m::interrupt::free(|cs| {
-                let patch = &synth.shared_state.patch.borrow(cs).borrow();
+                let mut events = Vec::new();
+                let synth = synth.borrow(cs).borrow_mut();
 
-                synth.shared_state.voice.borrow(cs).update(&events, patch)
+                synth.voice_events.deque_all(&mut events);
+
+                let patch = &synth.patch.borrow();
+
+                synth.voice.update(&events, patch)
             });
         }
     }
