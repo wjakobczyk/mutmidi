@@ -72,14 +72,14 @@ impl<'a> UI<'a> {
         }
     }
 
-    pub fn setup(&mut self, synth: SynthRef) {
+    pub fn setup(&mut self, synth: &mut SynthRef, storage: &mut StorageRef) {
         self.panels = Some([
             Panel::new(panel_bow::setup()),
             Panel::new(panel_blow::setup()),
             Panel::new(panel_strike::setup()),
             Panel::new(panel_res::setup()),
             Panel::new(panel_out::setup()),
-            Panel::new(panel_patch::setup(synth.clone())),
+            Panel::new(panel_patch::setup(synth, storage)),
         ])
     }
 

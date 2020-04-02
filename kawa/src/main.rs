@@ -21,6 +21,7 @@
 #![no_std]
 #![no_main]
 #![feature(drain_filter)]
+#![feature(clamp)]
 
 extern crate alloc;
 extern crate panic_halt;
@@ -82,6 +83,7 @@ use embedded_graphics::prelude::*;
 use embedded_graphics::primitives::Rectangle;
 
 use alloc::boxed::Box;
+use alloc::rc::Rc;
 use alloc::sync::Arc;
 
 include!("elements.rs");
@@ -93,6 +95,8 @@ const HEAP_SIZE: usize = 4 * 1024; // in bytes
 const FLASH_SECTOR_STORE: u8 = 11;
 
 type MidiUart = Serial<UART4, (NoTx, gpioc::PC11<Alternate<AF8>>)>;
+
+pub type StorageRef = Rc<RefCell<Storage>>;
 
 struct App<'a> {
     button_pins: (
@@ -121,7 +125,7 @@ struct App<'a> {
     midi_input: MidiInput<MidiUart>,
     ui: UI<'a>,
     synth: SynthRef,
-    storage: Storage,
+    storage: StorageRef,
 }
 
 impl<'a> App<'a> {
@@ -224,14 +228,14 @@ impl<'a> App<'a> {
 
         let synth = Arc::new(Mutex::new(RefCell::new(Synth::new())));
 
-        let storage = Storage::new(flash);
+        let storage = Rc::new(RefCell::new(Storage::new(flash)));
 
         if button_pins.0.is_high().unwrap() {
             cortex_m::interrupt::free(|cs| {
                 synth
                     .borrow(cs)
                     .borrow_mut()
-                    .set_patch(storage.get_patch(0));
+                    .set_patch(storage.borrow().get_patch(0));
             });
         }
 
@@ -250,20 +254,13 @@ impl<'a> App<'a> {
     }
 
     fn setup(&mut self) {
-        self.ui.setup(self.synth.clone());
+        self.ui.setup(&mut self.synth, &mut self.storage);
     }
 
     fn pause_synth(pause: bool) {
         unsafe {
             Elements_Pause(pause);
         }
-    }
-
-    fn save(&mut self) {
-        cortex_m::interrupt::free(|cs| {
-            self.storage
-                .save_patch(0, &self.synth.borrow(cs).borrow().get_patch());
-        });
     }
 
     pub fn change_panel(&mut self, self2: &'a mut App<'a>, panel: PanelId) {
@@ -284,8 +281,6 @@ impl<'a> App<'a> {
         self.display
             .flush(&mut self.delay)
             .expect("could not flush display");
-
-        self.save();
 
         App::pause_synth(false);
     }

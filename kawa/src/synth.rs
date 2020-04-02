@@ -34,6 +34,4 @@ impl Synth {
         let mut patch = self.patch.borrow_mut();
         *patch = *new_patch;
     }
-
-    pub fn test(&mut self) {}
 }
