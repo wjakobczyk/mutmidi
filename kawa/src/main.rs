@@ -222,6 +222,9 @@ impl<'a> App<'a> {
                 .set_priority(stm32f4::stm32f407::Interrupt::DMA1_STREAM5, 16);
         }
 
+        #[cfg(debug_assertions)]
+        App::pause_synth(true);
+
         let ui = UI::new();
 
         let flash = Flash::new(p.FLASH, FLASH_SECTOR_STORE);
@@ -267,6 +270,7 @@ impl<'a> App<'a> {
         self.ui.change_panel(&mut self2.ui, panel);
 
         self.update_knobs();
+        #[cfg(not(debug_assertions))]
         App::pause_synth(true);
 
         self.display.draw(
@@ -282,6 +286,7 @@ impl<'a> App<'a> {
             .flush(&mut self.delay)
             .expect("could not flush display");
 
+        #[cfg(not(debug_assertions))]
         App::pause_synth(false);
     }
 
