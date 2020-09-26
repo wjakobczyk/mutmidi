@@ -1,13 +1,20 @@
 use crate::ElementsParams;
 
+pub const PATCH_NAME_SIZE: usize = 8;
+
 #[derive(Debug, Default, Copy, Clone)]
 pub struct Patch {
+    pub name: [u8; PATCH_NAME_SIZE],
     pub elements_params: ElementsParams,
 }
 
 impl Patch {
     pub fn new() -> Self {
         Patch {
+            name: [
+                'p' as u8, 'a' as u8, 't' as u8, 'c' as u8, 'h' as u8, ' ' as u8, ' ' as u8,
+                ' ' as u8,
+            ],
             elements_params: ElementsParams {
                 exciter_envelope_shape: 1.0,
                 exciter_bow_level: 0.0,
