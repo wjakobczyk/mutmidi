@@ -37,7 +37,7 @@ struct State {
 
 type StateRef = Rc<RefCell<State>>;
 
-fn setup_knobs<'a>(state: &mut StateRef) -> Vec<Knob<'a>> {
+fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'a>> {
     let state = state.clone();
 
     vec![
@@ -48,10 +48,17 @@ fn setup_knobs<'a>(state: &mut StateRef) -> Vec<Knob<'a>> {
             {
                 let state = state.clone();
 
+                let storage = storage.clone();
+                let state = state.clone();
+
                 Box::new(move |delta: i8| {
                     let mut state = state.borrow_mut();
+                    let storage = storage.borrow();
                     state.patch_idx =
                         (state.patch_idx as i8 + delta).clamp(0, (MAX_PATCHES - 1) as i8) as u8;
+                    let patch = storage.get_patch(state.patch_idx);
+                    state.patch_name.borrow_mut().bytes = patch.name.to_vec();
+                    state.patch_name.borrow_mut().is_dirty = true;
                     state.patch_idx
                 })
             },
@@ -207,7 +214,7 @@ pub fn setup<'a>(
 
         (
             setup_buttons(1, &mut state, synth, storage),
-            setup_knobs(&mut state),
+            setup_knobs(&mut state, storage),
             texts,
         )
     } else {
