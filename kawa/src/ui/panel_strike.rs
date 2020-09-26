@@ -48,6 +48,10 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
     ]
 }
 
-pub fn setup<'a>() -> (Vec<Button<'a>>, Vec<Knob<'a>>) {
-    (super::panel_bow::setup_exciter_buttons(2), setup_knobs())
+pub fn setup<'a>() -> (Vec<Button<'a>>, Vec<Knob<'a>>, Vec<TextBox>) {
+    (
+        super::panel_bow::setup_exciter_buttons(2),
+        setup_knobs(),
+        vec![],
+    )
 }

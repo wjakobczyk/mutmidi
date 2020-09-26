@@ -106,6 +106,6 @@ pub fn setup_resonator_buttons<'a>(active: i8) -> Vec<Button<'a>> {
     ]
 }
 
-pub fn setup<'a>() -> (Vec<Button<'a>>, Vec<Knob<'a>>) {
-    (setup_resonator_buttons(0), setup_knobs())
+pub fn setup<'a>() -> (Vec<Button<'a>>, Vec<Knob<'a>>, Vec<TextBox>) {
+    (setup_resonator_buttons(0), setup_knobs(), vec![])
 }

@@ -20,10 +20,12 @@
 pub mod button;
 pub mod knob;
 pub mod panel;
+pub mod textbox;
 
 pub use button::Button;
 pub use knob::Knob;
 pub use panel::Panel;
+pub use textbox::{Content, TextBox};
 
 pub use embedded_graphics::{
     geometry::{Point, Size},
