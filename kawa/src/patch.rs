@@ -34,7 +34,9 @@ impl Patch {
                 resonator_modulation_offset: 0.112500004,
                 reverb_diffusion: 0.606249988,
                 reverb_lp: 0.824999988,
-                space: 0.5,
+                reverb_time: 0.5,
+                reverb_amount: 0.5,
+                space: 0.7,
                 modulation_frequency: 0.0,
             },
         }

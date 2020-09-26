@@ -139,22 +139,24 @@ void Part::Process(
       active_voice_ = 0;
     }
   }
-  
+
   previous_gate_ = performance_state.gate;
   note_[active_voice_] = performance_state.note;
   fill(&main[0], &main[size], 0.0f);
   fill(&aux[0], &aux[size], 0.0f);
-  
+
   // Compute the raw signal gain, stereo spread, and reverb parameters from
   // the "space" metaparameter.
-  float space = patch_.space >= 1.0f ? 1.0f : patch_.space;
-  float raw_gain = space <= 0.05f ? 1.0f : 
-    (space <= 0.1f ? 2.0f - space * 20.0f : 0.0f);
-  space = space >= 0.1f ? space - 0.1f : 0.0f;
-  float spread = space <= 0.7f ? space : 0.7f;
-  float reverb_amount = space >= 0.5f ? 1.0f * (space - 0.5f) : 0.0f;
-  float reverb_time = 0.35f + 1.2f * reverb_amount;
-  
+  //float space = patch_.space >= 1.0f ? 1.0f : patch_.space;
+  // float raw_gain = space <= 0.05f ? 1.0f :
+  //   (space <= 0.1f ? 2.0f - space * 20.0f : 0.0f);
+  float raw_gain = 0.0f;
+  //space = space >= 0.1f ? space - 0.1f : 0.0f;
+  //float spread = space <= 0.7f ? space : 0.7f;
+  float spread = 0.5f;
+  float reverb_amount = patch_.reverb_amount;// space >= 0.5f ? 1.0f * (space - 0.5f) : 0.0f;
+  float reverb_time = 0.35f + 1.2f * patch_.reverb_time;
+
   // Render each voice.
   for (size_t i = 0; i < kNumVoices; ++i) {
     float midi_pitch = note_[i] + performance_state.modulation;
@@ -237,16 +239,20 @@ void Part::Process(
   // Apply reverb.
   reverb_.set_amount(reverb_amount);
   reverb_.set_diffusion(patch_.reverb_diffusion);
-  bool freeze = patch_.space >= 1.75f;
-  if (freeze) {
-    reverb_.set_time(1.0f);
-    reverb_.set_input_gain(0.0f);
-    reverb_.set_lp(1.0f);
-  } else {
-    reverb_.set_time(reverb_time);
-    reverb_.set_input_gain(0.2f);
-    reverb_.set_lp(patch_.reverb_lp);
-  }
+  reverb_.set_time(reverb_time);
+  reverb_.set_input_gain(0.2f);
+  reverb_.set_lp(patch_.reverb_lp);
+  // bool freeze = patch_.space >= 1.75f;
+  // if (freeze) {
+  //   reverb_.set_time(1.0f);
+  //   reverb_.set_input_gain(0.0f);
+  //   reverb_.set_lp(1.0f);
+  // } else {
+  //   reverb_.set_time(reverb_time);
+  //   reverb_.set_input_gain(0.2f);
+  //   reverb_.set_lp(patch_.reverb_lp);
+  // }
+
   reverb_.Process(main, aux, size);
 }
 

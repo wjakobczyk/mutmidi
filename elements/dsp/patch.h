@@ -50,6 +50,8 @@ struct Patch {
   float resonator_modulation_offset;
   float reverb_diffusion;
   float reverb_lp;
+  float reverb_amount;
+  float reverb_time;
   float space;
   
   float modulation_frequency;

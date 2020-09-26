@@ -38,6 +38,8 @@ pub struct ElementsParams {
     pub resonator_modulation_offset: f32,
     pub reverb_diffusion: f32,
     pub reverb_lp: f32,
+    pub reverb_amount: f32,
+    pub reverb_time: f32,
     pub space: f32,
     pub modulation_frequency: f32,
 }

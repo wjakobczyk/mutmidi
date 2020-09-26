@@ -26,12 +26,32 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 fn setup_knobs<'a>() -> Vec<Knob<'a>> {
-    vec![Knob::new(
-        Point::new(KNOB_POS_X[2], KNOB_POS_Y),
-        "Spc",
-        InputDeviceId::Knob3 as InputId,
-        create_knob_handler(Param::Space),
-    )]
+    vec![
+        Knob::new(
+            Point::new(KNOB_POS_X[0], KNOB_POS_Y),
+            "Dfs",
+            InputDeviceId::Knob1 as InputId,
+            create_knob_handler(Param::ReverbDiffusion),
+        ),
+        Knob::new(
+            Point::new(KNOB_POS_X[1], KNOB_POS_Y),
+            "Dmp",
+            InputDeviceId::Knob2 as InputId,
+            create_knob_handler(Param::ReverbDamping),
+        ),
+        Knob::new(
+            Point::new(KNOB_POS_X[2], KNOB_POS_Y),
+            "Amt",
+            InputDeviceId::Knob3 as InputId,
+            create_knob_handler(Param::ReverbAmount),
+        ),
+        Knob::new(
+            Point::new(KNOB_POS_X[3], KNOB_POS_Y),
+            "Tim",
+            InputDeviceId::Knob4 as InputId,
+            create_knob_handler(Param::ReverbTime),
+        ),
+    ]
 }
 
 pub fn setup<'a>() -> (Vec<Button<'a>>, Vec<Knob<'a>>, Vec<TextBox>) {

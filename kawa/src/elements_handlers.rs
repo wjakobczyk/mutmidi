@@ -34,7 +34,10 @@ pub enum Param {
     ResBrightness,
     ResDamping,
     ResPosition,
-    Space,
+    ReverbDiffusion,
+    ReverbDamping,
+    ReverbAmount,
+    ReverbTime,
 }
 
 const KNOB_SCALER: f32 = 20f32;
@@ -84,6 +87,9 @@ pub fn create_knob_handler(param: Param) -> Box<dyn FnMut(i8) -> u8> {
         Param::ResBrightness => param_bind!(resonator_brightness),
         Param::ResDamping => param_bind!(resonator_damping),
         Param::ResPosition => param_bind!(resonator_position),
-        Param::Space => param_bind!(space),
+        Param::ReverbDiffusion => param_bind!(reverb_diffusion),
+        Param::ReverbDamping => param_bind!(reverb_lp),
+        Param::ReverbAmount => param_bind!(reverb_amount),
+        Param::ReverbTime => param_bind!(reverb_time),
     }
 }
