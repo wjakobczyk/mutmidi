@@ -90,7 +90,7 @@ include!("elements.rs");
 
 #[global_allocator]
 static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
-const HEAP_SIZE: usize = 4 * 1024; // in bytes
+const HEAP_SIZE: usize = 8 * 1024; // in bytes
 
 const FLASH_SECTOR_STORE: u8 = 11;
 

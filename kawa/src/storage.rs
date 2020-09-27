@@ -2,7 +2,7 @@ use crate::patch::*;
 use alloc::boxed::Box;
 use stm32_flash::Flash;
 
-pub const MAX_PATCHES: usize = 2;
+pub const MAX_PATCHES: usize = 16;
 
 struct Store {
     patches: [Patch; MAX_PATCHES],
@@ -19,6 +19,13 @@ impl Storage {
             patches: [Patch::new(); MAX_PATCHES],
         });
         flash.read_into(0, &mut *store);
+
+        for patch in &mut store.patches {
+            if patch.name[0] == 0xff {
+                *patch = Patch::new();
+            }
+        }
+
         Storage { flash, store }
     }
 
