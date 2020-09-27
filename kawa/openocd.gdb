@@ -9,7 +9,10 @@ set backtrace limit 32
 # detect unhandled exceptions, hard faults and panics
 break DefaultHandler
 break HardFault
-break core::panicking::panic
+#break core::panicking::panic_fmt
+# break core::result::unwrap_failed
+break rust_begin_unwind
+
 # # run the next few lines so the panic message is printed immediately
 # # the number needs to be adjusted for your panic handler
 # commands $bpnum
