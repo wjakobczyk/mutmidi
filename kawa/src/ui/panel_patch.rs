@@ -31,7 +31,6 @@ use alloc::vec::Vec;
 
 struct State {
     patch_idx: u8,
-    cursor_pos: usize,
     patch_name: Rc<RefCell<Content>>,
 }
 
@@ -68,14 +67,17 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
-            "Pos",
+            "Cur",
             InputDeviceId::Knob2 as InputId,
             {
                 let state = state.clone();
                 Box::new(move |delta: i8| {
-                    let mut state = state.borrow_mut();
-                    state.cursor_pos = (state.cursor_pos as i8 + delta).clamp(0, 10) as usize;
-                    state.cursor_pos as u8
+                    let state = state.borrow_mut();
+                    let name = &mut state.patch_name.borrow_mut();
+                    name.cursor_pos =
+                        (name.cursor_pos + delta as i32).clamp(0, PATCH_NAME_SIZE as i32 - 1);
+                    name.is_dirty = true;
+                    name.cursor_pos as u8
                 })
             },
             options,
@@ -87,10 +89,11 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
             {
                 let state = state.clone();
                 Box::new(move |delta: i8| {
-                    let mut state = state.borrow_mut();
-                    let cursor_pos = state.cursor_pos;
+                    let state = state.borrow_mut();
                     let name = &mut state.patch_name.borrow_mut();
-                    name.bytes[cursor_pos] = (name.bytes[cursor_pos] as i16 + delta as i16) as u8;
+                    let cursor_pos = name.cursor_pos as usize;
+                    name.bytes[cursor_pos] = ((name.bytes[cursor_pos] as i16 + delta as i16) as u8)
+                        .clamp(' ' as u8, '~' as u8);
                     name.is_dirty = true;
                     name.bytes[cursor_pos]
                 })
@@ -208,10 +211,10 @@ pub fn setup<'a>(
     if let Some(patch) = patch {
         let mut state = Rc::new(RefCell::new(State {
             patch_idx: 0,
-            cursor_pos: 0,
             patch_name: Rc::new(RefCell::new(Content {
                 bytes: patch.name.to_vec(),
                 is_dirty: false,
+                cursor_pos: 0,
             })),
         }));
 

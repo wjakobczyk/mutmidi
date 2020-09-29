@@ -21,12 +21,14 @@ use super::*;
 use alloc::rc::Rc;
 use alloc::vec::Vec;
 use core::cell::RefCell;
+use core::cmp::max;
 use core::str;
 use embedded_graphics::{fonts::Font6x12, prelude::*};
 
 pub struct Content {
     pub bytes: Vec<u8>,
     pub is_dirty: bool,
+    pub cursor_pos: i32,
 }
 
 pub struct ContentBox {
@@ -57,22 +59,36 @@ impl Drawable for ContentBox {
     fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size) {
         let content = &mut self.content.borrow_mut();
         content.is_dirty = false;
+        let mut size = Size {
+            width: 0,
+            height: 0,
+        };
+        let mut pos = self.pos;
+        let cursor_pos = content.cursor_pos as usize;
 
-        let render = Font6x12::render_str(&str::from_utf8(&content.bytes).unwrap())
-            .fill(Some(if self.highlight {
-                BinaryColor::On
-            } else {
-                BinaryColor::Off
-            }))
-            .stroke(Some(if self.highlight {
-                BinaryColor::Off
-            } else {
-                BinaryColor::On
-            }))
-            .translate(self.pos);
-        drawing.draw(render);
+        for (i, byte) in content.bytes.iter_mut().enumerate() {
+            let buf: [u8; 1] = [*byte];
+            let highlight = self.highlight || i == cursor_pos;
+            let render = Font6x12::render_str(&str::from_utf8(&buf).unwrap())
+                .fill(Some(if highlight {
+                    BinaryColor::On
+                } else {
+                    BinaryColor::Off
+                }))
+                .stroke(Some(if highlight {
+                    BinaryColor::Off
+                } else {
+                    BinaryColor::On
+                }))
+                .translate(pos);
+            drawing.draw(render);
+            let this_size = render.size();
+            pos.x += this_size.width as i32;
+            size.width += this_size.width;
+            size.height = max(size.height, this_size.height)
+        }
 
-        (self.pos, render.size())
+        (self.pos, size)
     }
 
     fn is_dirty(&self) -> bool {
