@@ -34,24 +34,28 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Geo",
             InputDeviceId::Knob1 as InputId,
             create_knob_handler(Param::ResGeometry),
+            KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
             "Bri",
             InputDeviceId::Knob2 as InputId,
             create_knob_handler(Param::ResBrightness),
+            KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[2], KNOB_POS_Y),
             "Damp",
             InputDeviceId::Knob3 as InputId,
             create_knob_handler(Param::ResDamping),
+            KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[3], KNOB_POS_Y),
             "Pos",
             InputDeviceId::Knob4 as InputId,
             create_knob_handler(Param::ResPosition),
+            KnobOptions::default(),
         ),
     ]
 }

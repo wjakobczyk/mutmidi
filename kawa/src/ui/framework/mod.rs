@@ -23,7 +23,7 @@ pub mod panel;
 pub mod textbox;
 
 pub use button::Button;
-pub use knob::Knob;
+pub use knob::{Knob, KnobOptions};
 pub use panel::Panel;
 pub use textbox::{Content, TextBox};
 

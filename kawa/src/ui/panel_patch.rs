@@ -39,6 +39,8 @@ type StateRef = Rc<RefCell<State>>;
 
 fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'a>> {
     let state = state.clone();
+    let mut options = KnobOptions::default();
+    options.render_value = false;
 
     vec![
         Knob::new(
@@ -62,6 +64,7 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
                     state.patch_idx
                 })
             },
+            KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
@@ -75,6 +78,7 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
                     state.cursor_pos as u8
                 })
             },
+            options,
         ),
         Knob::new(
             Point::new(KNOB_POS_X[2], KNOB_POS_Y),
@@ -91,6 +95,7 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
                     name.bytes[cursor_pos]
                 })
             },
+            options,
         ),
     ]
 }

@@ -32,24 +32,28 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Dfs",
             InputDeviceId::Knob1 as InputId,
             create_knob_handler(Param::ReverbDiffusion),
+            KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
             "Dmp",
             InputDeviceId::Knob2 as InputId,
             create_knob_handler(Param::ReverbDamping),
+            KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[2], KNOB_POS_Y),
             "Amt",
             InputDeviceId::Knob3 as InputId,
             create_knob_handler(Param::ReverbAmount),
+            KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[3], KNOB_POS_Y),
             "Tim",
             InputDeviceId::Knob4 as InputId,
             create_knob_handler(Param::ReverbTime),
+            KnobOptions::default(),
         ),
     ]
 }
