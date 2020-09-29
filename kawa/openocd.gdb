@@ -37,6 +37,8 @@ monitor arm semihosting enable
 # # enable ITM port 0
 # monitor itm port 0 on
 
+dashboard -layout !assembly breakpoints expressions history memory !registers source stack !threads variables
+
 load
 
 # start the process but immediately halt the processor
