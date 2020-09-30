@@ -20,7 +20,6 @@ Major limitations are:
 * MIDI system messages (e.g. SysEx) are also not supported;
 * Patch editor user interface is very simple and not very user friendly;
 * Sound playback stops for a fraction of second when switching UI pages - this is a workaround to avoid long screen updates (synthesis is ocuppying most of CPU time);
-* Patch load/store is not implemented yet.
 
 ## Hardware
 
