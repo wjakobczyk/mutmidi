@@ -20,6 +20,7 @@
 pub mod button;
 pub mod knob;
 pub mod panel;
+pub mod test;
 pub mod textbox;
 
 pub use button::Button;
@@ -30,7 +31,7 @@ pub use textbox::{Content, TextBox};
 pub use embedded_graphics::{
     geometry::{Point, Size},
     pixelcolor::BinaryColor,
-    Drawing,
+    DrawTarget,
 };
 
 #[derive(Copy, Clone)]
@@ -42,7 +43,7 @@ pub enum Value {
 pub type InputId = u32;
 
 pub trait Drawable {
-    fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size);
+    fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> (Point, Size);
     fn is_dirty(&self) -> bool;
 }
 

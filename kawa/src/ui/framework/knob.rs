@@ -17,10 +17,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Kawa Synth.  If not, see <https://www.gnu.org/licenses/>.
 
+use super::Drawable;
 use super::*;
 use alloc::boxed::Box;
 use core::cmp::max;
-use embedded_graphics::{fonts::Font6x12, prelude::*};
+use embedded_graphics::{
+    drawable::Drawable as EmbeddedDrawable, fonts::Font6x12, fonts::Text,
+    prelude::*, style::TextStyleBuilder, DrawTarget,
+};
 use numtoa::NumToA;
 
 #[derive(Copy, Clone)]
@@ -73,17 +77,26 @@ impl<'a> Knob<'a> {
 }
 
 impl Drawable for Knob<'_> {
-    fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size) {
-        let render_caption = Font6x12::render_str(&self.caption)
-            .fill(Some(BinaryColor::Off))
-            .stroke(Some(BinaryColor::On))
-            .translate(self.pos);
-        drawing.draw(render_caption);
+    fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> (Point, Size) {
+        let style = TextStyleBuilder::new(Font6x12)
+            .text_color(BinaryColor::On)
+            .background_color(BinaryColor::Off)
+            .build();
+
+        let text = Text::new(&self.caption, self.pos).into_styled(style);
+        let _ = text.draw(drawing);
+
+        let render_size = text.size();
 
         let mut value_size = Size {
             width: 0,
             height: 0,
         };
+
+        let style_value = TextStyleBuilder::new(Font6x12)
+            .text_color(BinaryColor::On)
+            .background_color(BinaryColor::Off)
+            .build();
 
         if self.options.render_value {
             let mut buffer = [0u8; 3];
@@ -92,13 +105,15 @@ impl Drawable for Knob<'_> {
                 buffer[buffer.len() - 2] = b' ';
             }
             let text = &buffer[buffer.len() - 2..buffer.len()];
-            let render_value =
-                Font6x12::render_str(unsafe { core::str::from_utf8_unchecked(text) })
-                    .fill(Some(BinaryColor::Off))
-                    .stroke(Some(BinaryColor::On))
-                    .translate(self.pos + Point::new(0, render_caption.size().height as i32));
-            drawing.draw(render_value);
-            value_size = render_value.size();
+
+            let text = Text::new(
+                unsafe { core::str::from_utf8_unchecked(text) },
+                self.pos + Point::new(0, 8),
+            )
+            .into_styled(style_value);
+            let _ = text.draw(drawing);
+
+            value_size = text.size();
         }
 
         self.dirty = false;
@@ -106,8 +121,8 @@ impl Drawable for Knob<'_> {
         (
             self.pos,
             Size::new(
-                max(render_caption.size().width, value_size.width),
-                render_caption.size().height + value_size.height,
+                max(render_size.width, value_size.width),
+                render_size.height + value_size.height,
             ),
         )
     }

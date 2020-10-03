@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Kawa Synth.  If not, see <https://www.gnu.org/licenses/>.
 
+use super::Drawable;
 use super::*;
 use super::{button::Button, knob::Knob, textbox::TextBox};
 use alloc::vec::Vec;
@@ -70,7 +71,7 @@ fn extend_rect_to_cover(pos: &mut Point, size: &mut Size, cover_pos: &Point, cov
 }
 
 impl Drawable for Panel<'_> {
-    fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size) {
+    fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> (Point, Size) {
         let mut panel_pos = Point {
             x: core::i32::MAX,
             y: core::i32::MAX,

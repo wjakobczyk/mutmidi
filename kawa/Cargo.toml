@@ -12,7 +12,7 @@ cortex-m-semihosting = "0.3.3"
 panic-halt = "0.2.0"
 cty = "0.2.0"
 embedded-hal = { version = "0.2.3", features = ["unproven"] }
-embedded-graphics = { version = "0.6.0-alpha.2" }
+embedded-graphics = { version = "0.6.2" }
 numtoa = "0.2.3"
 alloc-cortex-m = "0.4.0"
 

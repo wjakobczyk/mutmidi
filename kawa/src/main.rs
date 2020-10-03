@@ -79,8 +79,7 @@ use storage::Storage;
 mod synth;
 use synth::*;
 
-use embedded_graphics::prelude::*;
-use embedded_graphics::primitives::Rectangle;
+use embedded_graphics::{prelude::*, primitives::Rectangle, style::PrimitiveStyle};
 
 use alloc::boxed::Box;
 use alloc::rc::Rc;
@@ -273,13 +272,12 @@ impl<'a> App<'a> {
         #[cfg(not(debug_assertions))]
         App::pause_synth(true);
 
-        self.display.draw(
-            Rectangle::new(
-                Point::new(0, 0),
-                Point::new(st7920::WIDTH - 1, st7920::HEIGHT - 1),
-            )
-            .fill(Some(BinaryColor::Off)),
-        );
+        let _ = Rectangle::new(
+            Point::new(0, 0),
+            Point::new(st7920::WIDTH as i32 - 1, st7920::HEIGHT as i32 - 1),
+        )
+        .into_styled(PrimitiveStyle::with_fill(BinaryColor::Off))
+        .draw(&mut self.display);
 
         self.ui.render(&mut self.display);
         self.display
@@ -314,8 +312,16 @@ impl<'a> App<'a> {
         self.update_buttons();
         let invalidate = self.ui.render(&mut self.display);
 
-        if let Some(invalidate) = invalidate {
+        if let Some(mut invalidate) = invalidate {
             if invalidate.1.width != 0 && invalidate.1.height != 0 {
+                invalidate.1.width = invalidate
+                    .1
+                    .width
+                    .min(st7920::WIDTH - invalidate.0.x as u32);
+                invalidate.1.height = invalidate
+                    .1
+                    .height
+                    .min(st7920::HEIGHT - invalidate.0.y as u32);
                 self.display
                     .flush_region_graphics(invalidate, &mut self.delay)
                     .expect("could not flush display");

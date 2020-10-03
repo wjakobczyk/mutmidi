@@ -17,13 +17,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Kawa Synth.  If not, see <https://www.gnu.org/licenses/>.
 
+use super::Drawable;
 use super::*;
 use alloc::rc::Rc;
 use alloc::vec::Vec;
 use core::cell::RefCell;
 use core::cmp::max;
 use core::str;
-use embedded_graphics::{fonts::Font6x12, prelude::*};
+use embedded_graphics::{
+    drawable::Drawable as EmbeddedDrawable, fonts::Font6x12, fonts::Text, prelude::*,
+    style::TextStyleBuilder,
+};
 
 pub struct Content {
     pub bytes: Vec<u8>,
@@ -56,7 +60,7 @@ impl ContentBox {
 }
 
 impl Drawable for ContentBox {
-    fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size) {
+    fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> (Point, Size) {
         let content = &mut self.content.borrow_mut();
         content.is_dirty = false;
         let mut size = Size {
@@ -69,23 +73,24 @@ impl Drawable for ContentBox {
         for (i, byte) in content.bytes.iter_mut().enumerate() {
             let buf: [u8; 1] = [*byte];
             let highlight = self.highlight || i == cursor_pos;
-            let render = Font6x12::render_str(&str::from_utf8(&buf).unwrap())
-                .fill(Some(if highlight {
-                    BinaryColor::On
-                } else {
-                    BinaryColor::Off
-                }))
-                .stroke(Some(if highlight {
+            let style = TextStyleBuilder::new(Font6x12)
+                .text_color(if highlight {
                     BinaryColor::Off
                 } else {
                     BinaryColor::On
-                }))
-                .translate(pos);
-            drawing.draw(render);
-            let this_size = render.size();
-            pos.x += this_size.width as i32;
-            size.width += this_size.width;
-            size.height = max(size.height, this_size.height)
+                })
+                .background_color(if highlight {
+                    BinaryColor::On
+                } else {
+                    BinaryColor::Off
+                })
+                .build();
+            let text = Text::new(&str::from_utf8(&buf).unwrap(), pos).into_styled(style);
+            let _ = text.draw(drawing);
+            let text_size = text.size();
+            pos.x += text_size.width as i32;
+            size.width += text_size.width;
+            size.height = max(size.height, text_size.height);
         }
 
         (self.pos, size)

@@ -17,9 +17,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Kawa Synth.  If not, see <https://www.gnu.org/licenses/>.
 
+use super::Drawable;
 use super::*;
 use alloc::boxed::Box;
-use embedded_graphics::{fonts::Font6x12, prelude::*};
+use embedded_graphics::{
+    drawable::Drawable as EmbeddedDrawable, fonts::Font6x12, fonts::Text, prelude::*,
+    style::TextStyleBuilder,
+};
 
 pub struct Button<'a> {
     pos: Point,
@@ -55,23 +59,26 @@ impl<'a> Button<'a> {
 }
 
 impl Drawable for Button<'_> {
-    fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> (Point, Size) {
-        let render = Font6x12::render_str(&self.caption)
-            .fill(Some(if self.highlight {
-                BinaryColor::On
-            } else {
-                BinaryColor::Off
-            }))
-            .stroke(Some(if self.highlight {
+    fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> (Point, Size) {
+        let style = TextStyleBuilder::new(Font6x12)
+            .text_color(if self.highlight {
                 BinaryColor::Off
             } else {
                 BinaryColor::On
-            }))
-            .translate(self.pos);
-        drawing.draw(render);
+            })
+            .background_color(if self.highlight {
+                BinaryColor::On
+            } else {
+                BinaryColor::Off
+            })
+            .build();
+
+        let text = Text::new(&self.caption, self.pos).into_styled(style);
+
+        let _ = text.draw(drawing);
         self.dirty = false;
 
-        (self.pos, render.size())
+        (self.pos, text.size())
     }
 
     fn is_dirty(&self) -> bool {

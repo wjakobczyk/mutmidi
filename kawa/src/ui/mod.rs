@@ -27,6 +27,7 @@ pub mod panel_strike;
 
 use super::framework::*;
 use super::*;
+use crate::ui::framework::Drawable;
 
 use synth::SynthRef;
 
@@ -109,7 +110,7 @@ impl<'a> UI<'a> {
         self.update_button(InputDeviceId::Button5, values.4);
     }
 
-    pub fn render(&mut self, drawing: &mut impl Drawing<BinaryColor>) -> Option<(Point, Size)> {
+    pub fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> Option<(Point, Size)> {
         if let Some(panel) = &mut self.current_panel {
             Some(panel.render(drawing))
         } else {
