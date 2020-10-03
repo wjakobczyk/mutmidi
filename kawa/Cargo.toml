@@ -6,12 +6,12 @@ name = "kawa"
 version = "0.1.0"
 
 [dependencies]
-cortex-m = "0.6.0"
-cortex-m-rt = "0.6.10"
-cortex-m-semihosting = "0.3.3"
+cortex-m = "0.6.3"
+cortex-m-rt = "0.6.13"
+cortex-m-semihosting = "0.3.5"
 panic-halt = "0.2.0"
-cty = "0.2.0"
-embedded-hal = { version = "0.2.3", features = ["unproven"] }
+cty = "0.2.1"
+embedded-hal = { version = "0.2.4", features = ["unproven"] }
 embedded-graphics = { version = "0.6.2" }
 numtoa = "0.2.3"
 alloc-cortex-m = "0.4.0"
@@ -24,12 +24,12 @@ alloc-cortex-m = "0.4.0"
 
 [dependencies.stm32f4]
 features = ["stm32f407", "rt"]
-version = "0.8.0"
+version = "0.11.0"
 
 [dependencies.stm32f4xx-hal]
 default-features = false
 features = ["rt", "stm32f407"]
-version = "0.6.0"
+version = "0.8.3"
 
 [dependencies.st7920]
 git = "https://github.com/wjakobczyk/st7920.git"
@@ -38,7 +38,7 @@ git = "https://github.com/wjakobczyk/st7920.git"
 git = "https://github.com/wjakobczyk/midi-port.git"
 
 [dependencies.stm32-flash]
-path = "../../stm32-flash"
+git = "https://github.com/wjakobczyk/stm32-flash.git"
 
 # this lets you use `cargo fix`!
 [[bin]]
