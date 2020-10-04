@@ -29,21 +29,21 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
     vec![
         Knob::new(
             Point::new(KNOB_POS_X[0], KNOB_POS_Y),
-            "Lvl",
+            "Level",
             InputDeviceId::Knob1 as InputId,
             create_knob_handler(Param::ExcBlowLevel),
             KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
-            "Tmbr",
+            "Timbre",
             InputDeviceId::Knob2 as InputId,
             create_knob_handler(Param::ExcBlowTimbre),
             KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[2], KNOB_POS_Y),
-            "Cntr",
+            "Cont",
             InputDeviceId::Knob3 as InputId,
             create_knob_handler(Param::ExcEnvShape),
             KnobOptions::default(),

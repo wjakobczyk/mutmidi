@@ -25,7 +25,7 @@ use core::cell::RefCell;
 use core::cmp::max;
 use core::str;
 use embedded_graphics::{
-    drawable::Drawable as EmbeddedDrawable, fonts::Font6x12, fonts::Text, prelude::*,
+    drawable::Drawable as EmbeddedDrawable, fonts::Font6x8, fonts::Text, prelude::*,
     style::TextStyleBuilder,
 };
 
@@ -73,7 +73,7 @@ impl Drawable for ContentBox {
         for (i, byte) in content.bytes.iter_mut().enumerate() {
             let buf: [u8; 1] = [*byte];
             let highlight = self.highlight || i == cursor_pos;
-            let style = TextStyleBuilder::new(Font6x12)
+            let style = TextStyleBuilder::new(Font6x8)
                 .text_color(if highlight {
                     BinaryColor::Off
                 } else {
@@ -86,7 +86,9 @@ impl Drawable for ContentBox {
                 })
                 .build();
             let text = Text::new(&str::from_utf8(&buf).unwrap(), pos).into_styled(style);
-            let _ = text.draw(drawing);
+            if !text.draw(drawing).is_ok() {
+                panic!();
+            }
             let text_size = text.size();
             pos.x += text_size.width as i32;
             size.width += text_size.width;

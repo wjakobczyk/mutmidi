@@ -22,8 +22,12 @@ use super::*;
 use alloc::boxed::Box;
 use core::cmp::max;
 use embedded_graphics::{
-    drawable::Drawable as EmbeddedDrawable, fonts::Font6x12, fonts::Text,
-    prelude::*, style::TextStyleBuilder, DrawTarget,
+    drawable::Drawable as EmbeddedDrawable,
+    fonts::Text,
+    fonts::{Font6x6, Font6x8},
+    prelude::*,
+    style::TextStyleBuilder,
+    DrawTarget,
 };
 use numtoa::NumToA;
 
@@ -78,22 +82,23 @@ impl<'a> Knob<'a> {
 
 impl Drawable for Knob<'_> {
     fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> (Point, Size) {
-        let style = TextStyleBuilder::new(Font6x12)
+        let style = TextStyleBuilder::new(Font6x6)
             .text_color(BinaryColor::On)
             .background_color(BinaryColor::Off)
             .build();
 
-        let text = Text::new(&self.caption, self.pos).into_styled(style);
+        const TEXT_OFFSET_Y: i32 = 18;
+        let text = Text::new(&self.caption, self.pos + Point::new(0, TEXT_OFFSET_Y)).into_styled(style);
         let _ = text.draw(drawing);
 
-        let render_size = text.size();
+        let text_size = text.size();
 
         let mut value_size = Size {
             width: 0,
             height: 0,
         };
 
-        let style_value = TextStyleBuilder::new(Font6x12)
+        let style_value = TextStyleBuilder::new(Font6x8)
             .text_color(BinaryColor::On)
             .background_color(BinaryColor::Off)
             .build();
@@ -108,10 +113,12 @@ impl Drawable for Knob<'_> {
 
             let text = Text::new(
                 unsafe { core::str::from_utf8_unchecked(text) },
-                self.pos + Point::new(0, 8),
+                self.pos,
             )
             .into_styled(style_value);
-            let _ = text.draw(drawing);
+            if !text.draw(drawing).is_ok() {
+                panic!();
+            }
 
             value_size = text.size();
         }
@@ -121,8 +128,8 @@ impl Drawable for Knob<'_> {
         (
             self.pos,
             Size::new(
-                max(render_size.width, value_size.width),
-                render_size.height + value_size.height,
+                max(text_size.width, value_size.width),
+                text_size.height + TEXT_OFFSET_Y as u32,
             ),
         )
     }

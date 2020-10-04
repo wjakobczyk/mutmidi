@@ -67,7 +67,7 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
-            "Cur",
+            "Cursor",
             InputDeviceId::Knob2 as InputId,
             {
                 let state = state.clone();
@@ -84,7 +84,7 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
         ),
         Knob::new(
             Point::new(KNOB_POS_X[2], KNOB_POS_Y),
-            "Chr",
+            "Char",
             InputDeviceId::Knob3 as InputId,
             {
                 let state = state.clone();
@@ -112,7 +112,7 @@ fn setup_buttons<'a>(
     vec![
         Button::new(
             Point::new(BUTTON_POS_X[0], BUTTON_POS_Y),
-            if active == 0 { "*Ld" } else { " Ld" },
+            if active == 0 { "*Load" } else { " Load" },
             InputDeviceId::Button1 as InputId,
             {
                 let storage = storage.clone();
@@ -132,7 +132,7 @@ fn setup_buttons<'a>(
         ),
         Button::new(
             Point::new(BUTTON_POS_X[1], BUTTON_POS_Y),
-            if active == 0 { "*Sav" } else { " Sav" },
+            if active == 0 { "*Save" } else { " Save" },
             InputDeviceId::Button2 as InputId,
             {
                 let storage = storage.clone();
@@ -163,7 +163,7 @@ fn setup_buttons<'a>(
         ),
         Button::new(
             Point::new(BUTTON_POS_X[2], BUTTON_POS_Y),
-            "Exc",
+            "Excite",
             InputDeviceId::Button3 as InputId,
             Box::new(|_value: bool| {
                 unsafe {

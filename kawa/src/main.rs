@@ -272,12 +272,14 @@ impl<'a> App<'a> {
         #[cfg(not(debug_assertions))]
         App::pause_synth(true);
 
-        let _ = Rectangle::new(
+        let rect = Rectangle::new(
             Point::new(0, 0),
             Point::new(st7920::WIDTH as i32 - 1, st7920::HEIGHT as i32 - 1),
         )
-        .into_styled(PrimitiveStyle::with_fill(BinaryColor::Off))
-        .draw(&mut self.display);
+        .into_styled(PrimitiveStyle::with_fill(BinaryColor::Off));
+        if !rect.draw(&mut self.display).is_ok() {
+            panic!();
+        }
 
         self.ui.render(&mut self.display);
         self.display

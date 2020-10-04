@@ -21,7 +21,7 @@ use super::Drawable;
 use super::*;
 use alloc::boxed::Box;
 use embedded_graphics::{
-    drawable::Drawable as EmbeddedDrawable, fonts::Font6x12, fonts::Text, prelude::*,
+    drawable::Drawable as EmbeddedDrawable, fonts::Font6x6, fonts::Text, prelude::*,
     style::TextStyleBuilder,
 };
 
@@ -60,7 +60,7 @@ impl<'a> Button<'a> {
 
 impl Drawable for Button<'_> {
     fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> (Point, Size) {
-        let style = TextStyleBuilder::new(Font6x12)
+        let style = TextStyleBuilder::new(Font6x6)
             .text_color(if self.highlight {
                 BinaryColor::Off
             } else {
@@ -75,7 +75,10 @@ impl Drawable for Button<'_> {
 
         let text = Text::new(&self.caption, self.pos).into_styled(style);
 
-        let _ = text.draw(drawing);
+        if !text.draw(drawing).is_ok() {
+            panic!();
+        }
+
         self.dirty = false;
 
         (self.pos, text.size())

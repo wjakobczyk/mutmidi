@@ -31,21 +31,21 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
     vec![
         Knob::new(
             Point::new(KNOB_POS_X[0], KNOB_POS_Y),
-            "Lvl",
+            "Level",
             InputDeviceId::Knob1 as InputId,
             create_knob_handler(Param::ExcBowLevel),
             KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
-            "Tmbr",
+            "Timbre",
             InputDeviceId::Knob2 as InputId,
             create_knob_handler(Param::ExcBowTimbre),
             KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[2], KNOB_POS_Y),
-            "Cntr",
+            "Cont",
             InputDeviceId::Knob3 as InputId,
             create_knob_handler(Param::ExcEnvShape),
             KnobOptions::default(),
@@ -68,7 +68,7 @@ pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
         ),
         Button::new(
             Point::new(BUTTON_POS_X[1], BUTTON_POS_Y),
-            if active == 1 { "*Blw" } else { " Blw" },
+            if active == 1 { "*Blow" } else { " Blow" },
             InputDeviceId::Button2 as InputId,
             Box::new(|_value: bool| {
                 unsafe {
@@ -101,7 +101,7 @@ pub fn setup_exciter_buttons<'a>(active: i8) -> Vec<Button<'a>> {
         ),
         Button::new(
             Point::new(BUTTON_POS_X[4], BUTTON_POS_Y),
-            "Ptch",
+            "Patch",
             InputDeviceId::Button5 as InputId,
             Box::new(|_value: bool| {
                 unsafe {
