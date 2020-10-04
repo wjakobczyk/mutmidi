@@ -40,7 +40,7 @@ pub enum Param {
     ReverbTime,
 }
 
-const KNOB_SCALER: f32 = 20f32;
+pub const KNOB_MAX_VALUE: i32 = 20;
 const PARAM_MIN: f32 = 0.0;
 const PARAM_MAX: f32 = 0.9995;
 
@@ -63,10 +63,10 @@ macro_rules! param_bind {
                 let synth = (*APP).synth.borrow(cs).borrow_mut();
                 let mut patch = synth.patch.borrow_mut();
 
-                patch.elements_params.$PARAM += (delta as f32) / KNOB_SCALER;
+                patch.elements_params.$PARAM += (delta as f32) / (KNOB_MAX_VALUE as f32 + 1.0);
                 patch.elements_params.$PARAM =
                     clamp(patch.elements_params.$PARAM, PARAM_MIN, PARAM_MAX);
-                (patch.elements_params.$PARAM * KNOB_SCALER) as u8
+                (patch.elements_params.$PARAM * (KNOB_MAX_VALUE as f32 + 1.0)) as u8
             })
         })
     };

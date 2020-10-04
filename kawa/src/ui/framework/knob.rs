@@ -20,16 +20,16 @@
 use super::Drawable;
 use super::*;
 use alloc::boxed::Box;
-use core::cmp::max;
 use embedded_graphics::{
     drawable::Drawable as EmbeddedDrawable,
+    fonts::Font6x6,
     fonts::Text,
-    fonts::{Font6x6, Font6x8},
     prelude::*,
-    style::TextStyleBuilder,
+    primitives::{Circle, Line},
+    style::{PrimitiveStyle, PrimitiveStyleBuilder, Styled, TextStyle, TextStyleBuilder},
     DrawTarget,
 };
-use numtoa::NumToA;
+use micromath::F32Ext;
 
 #[derive(Copy, Clone)]
 pub struct KnobOptions {
@@ -42,10 +42,18 @@ pub struct Knob<'a> {
     input_id: InputId,
     value: u8,
     last_input_value: Option<i32>,
+    max_value: i32,
     dirty: bool,
+    dirty_text: bool,
     options: KnobOptions,
     handler: Box<dyn FnMut(i8) -> u8>,
+    text: Styled<Text<'a>, TextStyle<BinaryColor, Font6x6>>,
+    circle: Styled<Circle, PrimitiveStyle<BinaryColor>>,
+    line: Styled<Line, PrimitiveStyle<BinaryColor>>,
 }
+
+const TEXT_OFFSET_Y: i32 = 14;
+const KNOB_SIZE: u32 = 10;
 
 impl<'a> core::fmt::Debug for Knob<'a> {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
@@ -65,73 +73,79 @@ impl<'a> Knob<'a> {
         caption: &'a str,
         input_id: InputId,
         mut handler: Box<dyn FnMut(i8) -> u8>,
+        max_value: i32,
         options: KnobOptions,
     ) -> Self {
+        let text_style = TextStyleBuilder::new(Font6x6)
+            .text_color(BinaryColor::On)
+            .background_color(BinaryColor::Off)
+            .build();
+        let text_x = Text::new(&caption, pos)
+            .into_styled(text_style)
+            .size()
+            .width as i32
+            / -2;
+        let text =
+            Text::new(&caption, pos + Point::new(text_x, TEXT_OFFSET_Y)).into_styled(text_style);
+        let circle_style = PrimitiveStyleBuilder::new()
+            .stroke_color(BinaryColor::On)
+            .stroke_width(1)
+            .fill_color(BinaryColor::Off)
+            .build();
+        let circle = Circle::new(pos, KNOB_SIZE).into_styled(circle_style);
+        let line = Line::new(pos, pos).into_styled(PrimitiveStyle::with_stroke(BinaryColor::On, 3));
         Knob {
             pos,
             caption,
             input_id,
             value: (handler)(0),
             last_input_value: None,
+            max_value,
             dirty: true,
+            dirty_text: true,
             options,
             handler,
+            text,
+            circle,
+            line,
         }
     }
 }
 
 impl Drawable for Knob<'_> {
     fn render(&mut self, drawing: &mut impl DrawTarget<BinaryColor>) -> (Point, Size) {
-        let style = TextStyleBuilder::new(Font6x6)
-            .text_color(BinaryColor::On)
-            .background_color(BinaryColor::Off)
-            .build();
-
-        const TEXT_OFFSET_Y: i32 = 18;
-        let text = Text::new(&self.caption, self.pos + Point::new(0, TEXT_OFFSET_Y)).into_styled(style);
-        let _ = text.draw(drawing);
-
-        let text_size = text.size();
-
-        let mut value_size = Size {
-            width: 0,
-            height: 0,
-        };
-
-        let style_value = TextStyleBuilder::new(Font6x8)
-            .text_color(BinaryColor::On)
-            .background_color(BinaryColor::Off)
-            .build();
+        if self.dirty_text {
+            if !self.text.draw(drawing).is_ok() {
+                panic!();
+            }
+            self.dirty_text = false;                
+        }
 
         if self.options.render_value {
-            let mut buffer = [0u8; 3];
-            self.value.numtoa(10, &mut buffer);
-            if buffer[buffer.len() - 2] == 0 {
-                buffer[buffer.len() - 2] = b' ';
-            }
-            let text = &buffer[buffer.len() - 2..buffer.len()];
-
-            let text = Text::new(
-                unsafe { core::str::from_utf8_unchecked(text) },
-                self.pos,
-            )
-            .into_styled(style_value);
-            if !text.draw(drawing).is_ok() {
+            if !self.circle.draw(drawing).is_ok() {
                 panic!();
             }
 
-            value_size = text.size();
+            let angle = self.value as f32 * core::f32::consts::PI * 2.0 * 6.0 / 8.0 / (self.max_value as f32)
+                + core::f32::consts::FRAC_PI_4 * 3.0;
+            self.line.primitive.end = self.pos
+                + Point::new(
+                    (KNOB_SIZE as f32 * angle.cos()) as i32,
+                    (KNOB_SIZE as f32 * angle.sin()) as i32,
+                );
+            if !self.line.draw(drawing).is_ok() {
+                panic!();
+            }
+
+            self.dirty = false;
+
+            (
+                self.pos - Point::new(KNOB_SIZE as i32, KNOB_SIZE as i32),
+                Size::new(KNOB_SIZE * 2, KNOB_SIZE * 2),
+            )
+        } else {
+            (Point::new(0, 0), Size::new(0, 0))
         }
-
-        self.dirty = false;
-
-        (
-            self.pos,
-            Size::new(
-                max(text_size.width, value_size.width),
-                text_size.height + TEXT_OFFSET_Y as u32,
-            ),
-        )
     }
 
     fn is_dirty(&self) -> bool {
@@ -142,6 +156,7 @@ impl Drawable for Knob<'_> {
 impl InputConsumer for Knob<'_> {
     fn input_reset(&mut self) {
         self.last_input_value = None;
+        self.dirty_text = true;
     }
 
     fn input_update(&mut self, input_id: InputId, value: Value) {

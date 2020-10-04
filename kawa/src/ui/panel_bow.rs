@@ -34,6 +34,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Level",
             InputDeviceId::Knob1 as InputId,
             create_knob_handler(Param::ExcBowLevel),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
         Knob::new(
@@ -41,6 +42,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Timbre",
             InputDeviceId::Knob2 as InputId,
             create_knob_handler(Param::ExcBowTimbre),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
         Knob::new(
@@ -48,6 +50,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Cont",
             InputDeviceId::Knob3 as InputId,
             create_knob_handler(Param::ExcEnvShape),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
     ]

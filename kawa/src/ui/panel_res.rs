@@ -34,6 +34,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Geom",
             InputDeviceId::Knob1 as InputId,
             create_knob_handler(Param::ResGeometry),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
         Knob::new(
@@ -41,6 +42,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Bright",
             InputDeviceId::Knob2 as InputId,
             create_knob_handler(Param::ResBrightness),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
         Knob::new(
@@ -48,13 +50,15 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Damp",
             InputDeviceId::Knob3 as InputId,
             create_knob_handler(Param::ResDamping),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
         Knob::new(
             Point::new(KNOB_POS_X[3], KNOB_POS_Y),
-            "Pos    ",
+            "Pos",
             InputDeviceId::Knob4 as InputId,
             create_knob_handler(Param::ResPosition),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
     ]

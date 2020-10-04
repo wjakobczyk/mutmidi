@@ -15,6 +15,7 @@ embedded-hal = { version = "0.2.4", features = ["unproven"] }
 embedded-graphics = { version = "0.6.2" }
 numtoa = "0.2.3"
 alloc-cortex-m = "0.4.0"
+micromath = "1.1.0"
 
 # Uncomment for the panic example.
 # panic-itm = "0.4.1"

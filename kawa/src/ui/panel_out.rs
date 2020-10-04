@@ -32,6 +32,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Diffse",
             InputDeviceId::Knob1 as InputId,
             create_knob_handler(Param::ReverbDiffusion),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
         Knob::new(
@@ -39,6 +40,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Damp",
             InputDeviceId::Knob2 as InputId,
             create_knob_handler(Param::ReverbDamping),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
         Knob::new(
@@ -46,6 +48,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Amount",
             InputDeviceId::Knob3 as InputId,
             create_knob_handler(Param::ReverbAmount),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
         Knob::new(
@@ -53,6 +56,7 @@ fn setup_knobs<'a>() -> Vec<Knob<'a>> {
             "Time",
             InputDeviceId::Knob4 as InputId,
             create_knob_handler(Param::ReverbTime),
+            KNOB_MAX_VALUE,
             KnobOptions::default(),
         ),
     ]

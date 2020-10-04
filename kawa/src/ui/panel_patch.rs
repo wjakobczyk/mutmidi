@@ -31,6 +31,7 @@ use alloc::vec::Vec;
 
 struct State {
     patch_idx: u8,
+    patch_idx_text: Rc<RefCell<Content>>,
     patch_name: Rc<RefCell<Content>>,
 }
 
@@ -44,7 +45,7 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
     vec![
         Knob::new(
             Point::new(KNOB_POS_X[0], KNOB_POS_Y),
-            "Id",
+            "Patch",
             InputDeviceId::Knob1 as InputId,
             {
                 let state = state.clone();
@@ -57,13 +58,21 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
                     let storage = storage.borrow();
                     state.patch_idx =
                         (state.patch_idx as i8 + delta).clamp(0, (MAX_PATCHES - 1) as i8) as u8;
+                    let patch_idx_text = vec![
+                        '0' as u8 + state.patch_idx / 10,
+                        '0' as u8 + state.patch_idx % 10,
+                    ];
+                    state.patch_idx_text.borrow_mut().bytes = patch_idx_text;
+                    state.patch_idx_text.borrow_mut().is_dirty = true;
+
                     let patch = storage.get_patch(state.patch_idx);
                     state.patch_name.borrow_mut().bytes = patch.name.to_vec();
                     state.patch_name.borrow_mut().is_dirty = true;
                     state.patch_idx
                 })
             },
-            KnobOptions::default(),
+            16,
+            options,
         ),
         Knob::new(
             Point::new(KNOB_POS_X[1], KNOB_POS_Y),
@@ -80,6 +89,7 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
                     name.cursor_pos as u8
                 })
             },
+            PATCH_NAME_SIZE as i32 - 1,
             options,
         ),
         Knob::new(
@@ -98,6 +108,7 @@ fn setup_knobs<'a>(state: &mut StateRef, storage: &mut StorageRef) -> Vec<Knob<'
                     name.bytes[cursor_pos]
                 })
             },
+            '~' as i32,
             options,
         ),
     ]
@@ -193,10 +204,11 @@ fn setup_buttons<'a>(
 }
 
 fn setup_texts<'a>(state: &mut StateRef) -> Vec<TextBox> {
-    vec![TextBox::new(
-        Point::new(KNOB_POS_X[1], 20),
-        state.borrow_mut().patch_name.clone(),
-    )]
+    let state = state.borrow_mut();
+    vec![
+        TextBox::new(Point::new(KNOB_POS_X[1], 20), state.patch_name.clone()),
+        TextBox::new(Point::new(KNOB_POS_X[0], 20), state.patch_idx_text.clone()),
+    ]
 }
 
 pub fn setup<'a>(
@@ -211,6 +223,11 @@ pub fn setup<'a>(
     if let Some(patch) = patch {
         let mut state = Rc::new(RefCell::new(State {
             patch_idx: 0,
+            patch_idx_text: Rc::new(RefCell::new(Content {
+                bytes: vec!['0' as u8, '0' as u8],
+                is_dirty: false,
+                cursor_pos: 2,
+            })),
             patch_name: Rc::new(RefCell::new(Content {
                 bytes: patch.name.to_vec(),
                 is_dirty: false,
