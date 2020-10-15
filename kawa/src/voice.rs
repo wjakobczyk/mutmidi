@@ -1,9 +1,14 @@
 use crate::patch::*;
+use crate::util::clamp;
 use crate::{
     Elements_GetPatch, Elements_RetriggerGate, Elements_SetGate, Elements_SetNote,
     Elements_SetPitchModulation, Elements_SetStrength,
 };
 use alloc::vec::Vec;
+
+pub enum VoiceParam {
+    ResonatorPosition,
+}
 
 pub enum VoiceEvent {
     NoteOn {
@@ -14,16 +19,21 @@ pub enum VoiceEvent {
     NoteOff,
     ChangePitchModulation(f32),
     ChangeStrength(f32),
+    ChangeParam(VoiceParam, f32),
 }
 
-pub struct Voice {}
+pub struct Voice {
+    resonator_modulation: f32,
+}
 
 impl Voice {
     pub fn new() -> Self {
-        Voice {}
+        Voice {
+            resonator_modulation: 0f32,
+        }
     }
 
-    fn handle_events(&self, voice_events: &Vec<VoiceEvent>) {
+    pub fn handle_events(&mut self, voice_events: &Vec<VoiceEvent>) {
         for event in voice_events {
             match event {
                 VoiceEvent::NoteOn {
@@ -47,21 +57,24 @@ impl Voice {
                 VoiceEvent::ChangeStrength(value) => unsafe {
                     Elements_SetStrength(*value);
                 },
+                VoiceEvent::ChangeParam(VoiceParam::ResonatorPosition, value) => {
+                    self.resonator_modulation = *value
+                }
             }
         }
     }
 
-    fn update_patch(&self, patch: &Patch) {
+    pub fn update_patch(&self, patch: &Patch) {
         unsafe {
             let elements_params = &mut *Elements_GetPatch();
 
-            //will add modulation here
             *elements_params = patch.elements_params;
-        }
-    }
 
-    pub fn update(&self, voice_events: &Vec<VoiceEvent>, patch: &Patch) {
-        self.handle_events(voice_events);
-        self.update_patch(patch);
+            elements_params.resonator_position = clamp(
+                elements_params.resonator_position + self.resonator_modulation,
+                0.0,
+                1.0,
+            );
+        }
     }
 }

@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Kawa Synth.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::util::clamp;
 use crate::APP;
 use alloc::boxed::Box;
 
@@ -43,18 +44,6 @@ pub enum Param {
 pub const KNOB_MAX_VALUE: i32 = 20;
 const PARAM_MIN: f32 = 0.0;
 const PARAM_MAX: f32 = 0.9995;
-
-pub fn clamp(value: f32, min: f32, max: f32) -> f32 {
-    if value < min {
-        min
-    } else {
-        if value > max {
-            max
-        } else {
-            value
-        }
-    }
-}
 
 macro_rules! param_bind {
     ($PARAM:ident) => {

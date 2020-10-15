@@ -396,13 +396,13 @@ fn DMA1_STREAM5() {
             let synth = (*APP).synth.clone();
             cortex_m::interrupt::free(|cs| {
                 let mut events = Vec::new();
-                let synth = synth.borrow(cs).borrow_mut();
+                let mut synth = synth.borrow(cs).borrow_mut();
 
                 synth.voice_events.deque_all(&mut events);
+                synth.voice.handle_events(&events);
 
                 let patch = &synth.patch.borrow();
-
-                synth.voice.update(&events, patch)
+                synth.voice.update_patch(patch)
             });
         }
     }

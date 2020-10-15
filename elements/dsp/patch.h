@@ -53,8 +53,6 @@ struct Patch {
   float reverb_amount;
   float reverb_time;
   float space;
-  
-  float modulation_frequency;
 };
 
 }  // namespace elements

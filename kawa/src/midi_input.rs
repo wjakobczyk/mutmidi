@@ -1,5 +1,5 @@
 use crate::synth::VoiceEventsQueue;
-use crate::voice::VoiceEvent;
+use crate::voice::{VoiceEvent, VoiceParam};
 use alloc::vec::Vec;
 use midi_port::*;
 
@@ -56,6 +56,14 @@ where
                         (value as f32 - 8192 as f32) * 2f32 / 8192 as f32,
                     ))
                 }
+                MidiMessage::ControlChange {
+                    channel: _,
+                    controller: 1,
+                    value,
+                } => Some(VoiceEvent::ChangeParam(
+                    VoiceParam::ResonatorPosition,
+                    (value as f32) / 127.0,
+                )),
                 _ => None,
             };
 

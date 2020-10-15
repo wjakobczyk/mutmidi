@@ -41,7 +41,8 @@ pub struct ElementsParams {
     pub reverb_amount: f32,
     pub reverb_time: f32,
     pub space: f32,
-    pub modulation_frequency: f32,
+    
+    pub dummy: f32,
 }
 
 #[link(name = "elements")]

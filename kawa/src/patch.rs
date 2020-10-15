@@ -37,7 +37,7 @@ impl Patch {
                 reverb_time: 0.5,
                 reverb_amount: 0.5,
                 space: 0.7,
-                modulation_frequency: 0.0,
+                dummy: 0.0,
             },
         }
     }

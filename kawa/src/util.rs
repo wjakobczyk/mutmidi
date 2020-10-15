@@ -22,3 +22,15 @@ impl<T> QueueThreadSafe<T> {
         cortex_m::interrupt::free(|cs| items.append(&mut self.items.borrow(cs).borrow_mut()));
     }
 }
+
+pub fn clamp(value: f32, min: f32, max: f32) -> f32 {
+    if value < min {
+        min
+    } else {
+        if value > max {
+            max
+        } else {
+            value
+        }
+    }
+}
