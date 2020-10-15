@@ -1,7 +1,7 @@
 use crate::patch::*;
 use crate::{
-    Elements_GetPatch, Elements_RetriggerGate, Elements_SetGate, Elements_SetModulation,
-    Elements_SetNote, Elements_SetStrength,
+    Elements_GetPatch, Elements_RetriggerGate, Elements_SetGate, Elements_SetNote,
+    Elements_SetPitchModulation, Elements_SetStrength,
 };
 use alloc::vec::Vec;
 
@@ -12,7 +12,8 @@ pub enum VoiceEvent {
         strength: f32,
     },
     NoteOff,
-    ChangeModulation(f32),
+    ChangePitchModulation(f32),
+    ChangeStrength(f32),
 }
 
 pub struct Voice {}
@@ -40,8 +41,11 @@ impl Voice {
                 VoiceEvent::NoteOff => unsafe {
                     Elements_SetGate(false);
                 },
-                VoiceEvent::ChangeModulation(modulation) => unsafe {
-                    Elements_SetModulation(*modulation);
+                VoiceEvent::ChangePitchModulation(modulation) => unsafe {
+                    Elements_SetPitchModulation(*modulation);
+                },
+                VoiceEvent::ChangeStrength(value) => unsafe {
+                    Elements_SetStrength(*value);
                 },
             }
         }

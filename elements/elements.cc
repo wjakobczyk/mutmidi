@@ -208,7 +208,7 @@ void Elements_SetStrength(float newStrength) {
   state.strength = newStrength;
 }
 
-void Elements_SetModulation(float newModulation) {
+void Elements_SetPitchModulation(float newModulation) {
   state.modulation = newModulation;
 }
 

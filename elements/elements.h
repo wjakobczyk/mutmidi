@@ -10,6 +10,6 @@ extern "C" {
   void Elements_RetriggerGate();
   void Elements_SetNote(float newNote);
   void Elements_SetStrength(float newStrength);
-  void Elements_SetModulation(float newModulation);
+  void Elements_SetPitchModulation(float newModulation);
   void Elements_DMA1_Stream5_IRQHandler(void);
 }

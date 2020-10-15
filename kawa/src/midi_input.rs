@@ -50,7 +50,12 @@ where
                     channel: _,
                     note: None,
                     value,
-                } => Some(self.handle_modulation(value)),
+                } => Some(VoiceEvent::ChangeStrength((value as f32) / 127.0)),
+                MidiMessage::PitchBendChange { channel: _, value } => {
+                    Some(VoiceEvent::ChangePitchModulation(
+                        (value as f32 - 8192 as f32) * 2f32 / 8192 as f32,
+                    ))
+                }
                 _ => None,
             };
 
@@ -81,9 +86,5 @@ where
         } else {
             return VoiceEvent::NoteOff;
         }
-    }
-
-    fn handle_modulation(&mut self, value: u8) -> VoiceEvent {
-        VoiceEvent::ChangeModulation((value as f32) / 127.0)
     }
 }
