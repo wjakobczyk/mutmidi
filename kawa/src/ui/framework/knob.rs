@@ -118,7 +118,7 @@ impl Drawable for Knob<'_> {
             if !self.text.draw(drawing).is_ok() {
                 panic!();
             }
-            self.dirty_text = false;                
+            self.dirty_text = false;
         }
 
         if self.options.render_value {
@@ -126,7 +126,9 @@ impl Drawable for Knob<'_> {
                 panic!();
             }
 
-            let angle = self.value as f32 * core::f32::consts::PI * 2.0 * 6.0 / 8.0 / (self.max_value as f32)
+            let angle = self.value as f32 * core::f32::consts::PI * 2.0 * 6.0
+                / 8.0
+                / (self.max_value as f32)
                 + core::f32::consts::FRAC_PI_4 * 3.0;
             self.line.primitive.end = self.pos
                 + Point::new(
