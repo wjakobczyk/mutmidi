@@ -64,6 +64,14 @@ where
                     VoiceParam::ResonatorPosition,
                     (value as f32) / 127.0,
                 )),
+                MidiMessage::ControlChange {
+                    channel: _,
+                    controller,
+                    value,
+                } => Some(VoiceEvent::ChangeParam(
+                    VoiceParam::CCParam(controller),
+                    (value as f32) / 127.0,
+                )),
                 _ => None,
             };
 

@@ -399,9 +399,10 @@ fn DMA1_STREAM5() {
                 let mut synth = synth.borrow(cs).borrow_mut();
 
                 synth.voice_events.deque_all(&mut events);
-                synth.voice.handle_events(&events);
+                synth.voice.handle_voice_events(&events);
 
-                let patch = &synth.patch.borrow();
+                let patch = &mut synth.patch.borrow_mut();
+                synth.voice.handle_patch_events(&events, &mut *patch);
                 synth.voice.update_patch(patch)
             });
         }
